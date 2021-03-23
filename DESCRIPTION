@@ -20,9 +20,8 @@ Imports:
   stringr,
   tidyr
 Suggests:
-  readr,
   knitr,
-  rmarkdown
-Enhances:
+  readr,
+  rmarkdown,
   TITAN2
 VignetteBuilder: knitr
