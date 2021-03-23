@@ -1,0 +1,415 @@
+---
+title: "pTITAN2: Permutation of Treatment Labels and Threshold Indicator Taxa Analysis"
+authors: "Peter DeWitt, Stephanie Figary and Naomi Detenbeck"
+output: rmarkdown::html_vignette
+vignette: >
+ %\VignetteEngine{knitr::rmarkdown}
+ %\VignetteIndexEntry{pTITAN2}
+ %\VignetteEncoding{UTF-8}
+---
+
+
+```{r label=setup, include = FALSE}
+library(knitr)
+knitr::opts_chunk$set(collapse = TRUE)
+```
+
+# Introduction
+
+pTITAN2 is an extension to the TITAN2 package by Matthew E. Baker, Ryan S. King and 
+David Kahle. The TITAN2 package is used for performing Taxa
+Indicator Threshold ANalysis (TITAN) in R (Baker and King, 2010). The TITAN2 package 
+generates change points along an environmental gradient for individual taxa and for
+composites of increasing or decreasing taxa, along with associated confidence intervals,
+the latter via bootstrapping.  While some scientists examine the overlap between
+confidence intervals to determine whether the difference between two point estimates
+is significantly different, this approach is more conservative than the standard 
+approach for assessing significant differences and rejects the null hypothesis
+less often than standard approaches (Schenker and Gentleman 2001, Greenland et al. 2016).
+"As with P values, comparison between groups requires statistics that directly test and
+estimate the differences across groups." (Greenland et al. 2016). This package, 
+pTITAN2, enables comparing TITAN2 output between treatments by permutating
+the observed data between treatments and rerunning TITAN on the permuted 
+data. There are some limitations on the permutations, including (1) a site
+cannot occur in a category more than once, the same limitation as in the original
+TITAN runs and (2) the original sample size distribution is maintained. This 
+addresses potential sample size effects and enables comparisons between 
+treatments with different sampling sizes.
+
+To reproduce the examples in this vignette you will need to load and attach
+the `pTITAN2` namespace and the `magrittr` namespace for the piping
+operators. All other name spaces are used explicitly.
+
+For more background on TITAN, please see: 
+Baker, M. E., and R. S. King. 2010. A new method for detecting and interpreting biodiversity and ecological community thresholds. Methods in Ecology and Evolution 1:25-37.
+Baker, M. E., and R. S. King. 2013. Of TITAN and straw men: an appeal for greater understanding of community data. Freshwater Science 32:489-506.
+
+For more information on the TITAN2 package and the TITAN function, used in pTITAN2, please see: 
+Baker, M. E., R. S. King, and D, Kahle. An Introduction to TITAN2. Vignette. Version 2.2.901
+Baker, M. E., R. S. King, and D, Kahle. 2019.
+  TITAN2: Threshold Indicator Taxa Analysis. R package
+  version 2.4. https://CRAN.R-project.org/package=TITAN2
+
+```{r }
+set.seed(42)
+library(pTITAN2)
+library(magrittr)
+library(dplyr)
+```
+# Example data
+This vignette provides examples for using the pTITAN2 tools in 
+this package. Example data sets are from publicly available
+macroinvertebrate survey data from California. 
+The data sets are broken down between the environmental 
+variable, in this case percent impervious cover, and macroinvertebrate data. Separate 
+data files are provided for each 'treatment' that is explored. In this case, the treatments
+are data from either drought (dry) or normal precipitation years in the Chaparral region of California. 
+
+The data structure that is shown here is not required for pTITAN2. Instead the environmental
+variables and treatments could be in a single data file and filtered/selected as needed. 
+
+
+```{r label="list-example-data-sets"}
+list.files(system.file("extdata", package = "pTITAN2"))
+```
+
+
+File                 Data Type              Region       Treatment
+----------------     ---------------------- -----------  ---------
+`C_IC_D_06_wID.csv`  Environmental Gradient Chaparral    Dry
+`C_IC_N_06_wID.csv`  Environmental Gradient Chaparral    Normal
+`CD_06_Mall_wID.csv` Taxonomic              Chaparral    Dry
+`CN_06_Mall_wID.csv` Taxonomic              Chaparral    Normal
+
+
+# Selecting macroinvertebrate density data for TITAN
+A new function in pTITAN2 is the occurrences function. This is an extension for 
+deciding the taxonomic detail to be included in a TITAN run based on `minSplt` in TITAN.
+`minSplt` is minimum number of occurrences that TITAN is looking for 
+taxa to have across the provided sites. The `minSplt` default in TITAN is 5 and should never drop below 3. 
+
+There are two approaches for deciding the level of taxonomic detail to include in a 
+TITAN run. First, the analyst could decide to look at everything at a certain taxonomic level, 
+for example genus. In this approach every genus that did not have the minimum number of 
+occurrences would not be included. The second approach would be using the lowest taxonomic 
+detail on a case-by-case bias. This means retaining the lowest detail that meets the minimum number of
+occurrences. In this approach if a genus had, for example, 5 occurrences it would be used. However, if
+a family with three genuses each only had two occurrences, the family level would be used instead. 
+This is the approach that is used in the occurrences function where the `n` is the 
+minimum number of occurrences that are required for the TITAN runs. 
+
+Example:
+The `CN_06_Mall.csv` (Chaparral Region, Treatment = Normal) file contains raw
+macroinvertebrate density data for 500 possible macroinvertebrate codes for
+each taxonomic level (class, order, family, genus). The `occurrences`
+function selects the codes that should be used for the `TITAN2::titan` run.
+The goal is to select the macroinvertebrate code with the most taxonomic
+detail having at least `n` occurrences. Only one macroinvertebrate code will be
+associated with the macroinvertebrate counts. For example, if there are at
+least six occurrences at the genus level, the family, order, and class codes
+would not be used in the `TITAN2::titan` run.
+
+
+```{r }
+CN_06_Mall <-
+  readr::read_csv(file = system.file("extdata", "CN_06_Mall_wID.csv",
+                                     package = "pTITAN2"),
+                  col_types = readr::cols(.default = readr::col_double()))
+CD_06_Mall <-
+  readr::read_csv(file = system.file("extdata", "CD_06_Mall_wID.csv",
+                                     package = "pTITAN2"),
+                  col_types = readr::cols(.default = readr::col_double()))
+
+CN_06_Mall
+```
+
+
+The names within the data set are expected to have the following structure:
+
+* 8 characters in length
+* characters 1 and 2 denote the class
+* characters 3 and 4 denote the order
+* characters 5 and 6 denote the family
+* characters 7 and 8 denote the genus.
+
+If no information at a level exists, use "00" to hold the place. For
+example: A code that is 'Bi000000' is the Bivalvia class, while BiVe0000 is
+the Bivalvia class, Veneroida order. BiVeSh00 is the Bivalvia class,
+Veneroida order, Spheriridae family. BiVeSh01 is a genus within that family.
+
+To have a sufficient number of observations for each code in the
+`TITAN::titan()` runs we will only use those with at least `n` observations.
+The code to use should be as granular as possible.
+This means if a macroinvertebrate count has at least six occurrences in a genus
+code, the family, order, and class codes associated with these counts should be
+removed.  Or for another example, if there are too few counts at the genus level,
+but at least 6 counts at the family level- the family code would be retained and
+the order and class codes would be removed.
+
+The function `occurrences` provides a `data.frame` with the `taxon`, as
+provided and split into its component parts, and the counts.
+
+
+```{r }
+CN_06_Mall %>%
+  dplyr::select(-StationID) %>%
+  occurrences(., n = 6L) %>% head()
+```
+
+
+Compare these results to the (present) counts from the raw data:
+
+
+```{r }
+CN_06_Mall %>%
+  dplyr::select(-StationID) %>%
+  tidyr::gather(key = 'taxon', value = 'count') %>%
+  dplyr::mutate(Class = stringr::str_sub(.data$taxon, 1, 2),
+                Order = stringr::str_sub(.data$taxon, 3, 4),
+                Family = stringr::str_sub(.data$taxon, 5, 6),
+                Genus  = stringr::str_sub(.data$taxon, 7, 8)) %>%
+  dplyr::group_by(.data$Class, .data$Order, .data$Family, .data$Genus) %>%
+  dplyr::summarize(taxon = unique(.data$taxon), count = sum(.data$count > 0)) %>%
+  dplyr::ungroup() %>%
+  # dplyr::filter(count >= 6L) %>%
+  dplyr::arrange(.data$Class, .data$Order, .data$Family, .data$Genus) %>% head()
+
+```
+
+
+Note that for `Class == "Ar"` there is only one row, with no `Order`, `Family`,
+or `Genus` level information. That row is retained in the object returned from
+`occurrences`.
+
+The `Class == Bi` is more interesting. The `Order == "Un"` has no present
+counts and is thus not reported in the object returned from `occurrences`.
+The `BiVeCa01` should be reported, but not the `BiVeCa00`.  `BiVeSh00` should
+also be reported. The `BiVe0000` and `Bi000000` should not be returned from
+`occurrences` as preference for the codes with Family and Genus information
+has been used.
+
+For the resampling work to follow we will build the two taxonomic data sets
+by selecting the columns for the taxon returned by `occurrences`
+
+```{r }
+chaparral_taxon_normal <-
+  dplyr::select(CN_06_Mall, StationID,
+                occurrences(dplyr::select(CN_06_Mall, -StationID), n = 6L)$taxon)
+chaparral_taxon_dry <-
+  dplyr::select(CD_06_Mall, StationID,
+                occurrences(dplyr::select(CD_06_Mall, -StationID), n = 6L)$taxon)
+
+chaparral_taxon_normal
+```
+
+
+
+# Permuting of Treatment Labels
+The second new function in the pTITAN2 is the permute function. This is the function
+that is used to permute the data across treatment labels such
+that each station has a non-zero probability of being assigned to each
+treatment, and that the stations are unique within each treatment and
+replication.
+
+For example, say we have stations A, B, C, D and E with treatments 1 and 2.
+Let the Trt0 denote the initial treatment labels for the stations and Trt1,
+Trt2, ... denote the permuted labels.
+
+Station Trt0 Trt1 Trt2 Trt3 Trt4
+------- ---- ---- ---- ---- ----
+A       1    1    2    1    1
+A       2    2    1    2    2
+B       1    1    1    2    2
+C       1    1    2    2    1
+C       2    2    1    1    2
+D       2    2    2    1    2
+E       2    2    2    2    1
+
+Notice that for station A and C in each of the permuted sets, one row is
+assigned to treatment 1 and one to treatment 2, i.e., a station is not
+replicated within a treatment level within a permutation.  For Stations B,
+D, and E, the initial observations were for treatments 1, 2, and 2
+respectively. The balance of 1, 2, 2 is maintained over the permutations.
+
+The function `permute` is provided to generate a list of permuted sets of
+taxa and environmental gradients.
+
+Before we can run `permute`, we need to import the environmental gradients
+data.
+
+```{r }
+chaparral_envgrad_normal <-
+  readr::read_csv(system.file("extdata", "C_IC_N_06_wID.csv", package = "pTITAN2"),
+                  col_types = readr::cols(.default = readr::col_double()))
+chaparral_envgrad_dry <-
+  readr::read_csv(system.file("extdata", "C_IC_D_06_wID.csv", package = "pTITAN2"),
+                  col_types = readr::cols(.default = readr::col_double()))
+```
+
+
+
+
+```{r }
+eg <- permute(taxa = list(chaparral_taxon_dry, chaparral_taxon_normal),
+              envs = list(chaparral_envgrad_dry, chaparral_envgrad_normal),
+              sid = StationID)
+```
+
+
+The result of the `permute` call is a list of lists.
+
+```{r }
+str(eg, max.level = 1L)
+```
+
+The first level denotes the treatment  In this example `treatment1` is
+the "dry" condition and the `treatment2` is the "normal" condition, the order
+of the inputs.
+
+The second level are the data.frames for the treatment, the environmental
+gradient and the taxonomic data.
+
+```{r }
+str(eg, max.level = 2L)
+```
+
+
+# Running `TITAN2::titan`
+
+The most computationally expensive part of this work is calling
+`TITAN2::titan` many, many times. A good option is to use the parallel
+package to send the task of permuting the data and running `TITAN2::titan()`
+to individual processing cores.
+
+Example:
+The below code chunk provides an example of inputting data for TITAN, permuting the 
+data across treatments, using occurrences to select the data for the TITAN run, 
+and then running TITAN on the permuted and selected data. The output from this code chunk
+are the increasing and decreasing taxa sumz values. In this example only four permutations are 
+used and TITAN bootstrapping is limited to five iterations. In an actual analysis these values should 
+be much higher. This process is very computationally intensive and can take hours or days to run
+depending on the available computing power and the number of bootstraps and permutations used.
+
+```{r }
+# Re-import the data.
+CN_06_Mall <-
+  readr::read_csv(file = system.file("extdata", "CN_06_Mall_wID.csv",
+                                     package = "pTITAN2"),
+                  col_types = readr::cols(.default = readr::col_double()))
+CD_06_Mall <-
+  readr::read_csv(file = system.file("extdata", "CD_06_Mall_wID.csv",
+                                     package = "pTITAN2"),
+                  col_types = readr::cols(.default = readr::col_double()))
+
+chaparral_envgrad_normal <-
+  readr::read_csv(system.file("extdata", "C_IC_N_06_wID.csv", package = "pTITAN2"),
+                  col_types = readr::cols(.default = readr::col_double()))
+chaparral_envgrad_dry <-
+  readr::read_csv(system.file("extdata", "C_IC_D_06_wID.csv", package = "pTITAN2"),
+                  col_types = readr::cols(.default = readr::col_double()))
+
+
+# set up the cluster
+library(parallel)
+cl <- parallel::makeCluster(2, setup_strategy = "sequential")
+clusterEvalQ(cl, {require(pTITAN2); require(TITAN2); require(dplyr) })
+
+clusterExport(cl,
+              c("CD_06_Mall", "CN_06_Mall",
+                "chaparral_envgrad_dry", "chaparral_envgrad_normal"))
+
+
+# generate a generic function to permute the data and run titan. This will be
+# used in parallel::parLapply.  This function will return NA if an error occurs
+# or the `sumz.cp` element of a titan run if the permuation and titan runs
+# succeed. The number of bootstraps can be selected at 'nBoot,' which is 
+# set to five for this example
+foo <- function(x) {
+  p <- suppressMessages(permute(taxa = list(CD_06_Mall, CN_06_Mall),
+                                envs = list(chaparral_envgrad_dry, chaparral_envgrad_normal),
+                                sid = StationID))
+  if (is.null(p)) {
+    return(NA)
+  } else {
+    
+    Treat1_codes <- dplyr::select(p$Treatment1$taxa,
+                                  occurrences(p$Treatment1$taxa, n = 6L)$taxon)
+    Treat2_codes <- dplyr::select(p$Treatment2$taxa,
+                                  occurrences(p$Treatment2$taxa, n = 6L)$taxon)
+    out1 <- try(TITAN2::titan(env  = p$Treatment1$env,
+                              txa  = Treat1_codes,
+                              boot = TRUE,
+                              nBoot = 5), #Change the number of bootstraps here
+                silent = TRUE)
+    out2 <- try(TITAN2::titan(env  = p$Treatment2$env,
+                              txa  = Treat2_codes,
+                              boot = TRUE,
+                              nBoot = 5),
+                silent = TRUE)
+  }#This chunk can be altered to include more treatments, if needed
+  
+  if ("try-error" %in% c(class(out1), class(out2))) {
+    return(NA)
+  } else {
+    return(dplyr::data_frame(
+      "trt1cpsumz-" = out1$sumz.cp[1, 4], #decreasing taxa output
+      "trt1cpsumz+" = out1$sumz.cp[2, 4], #increasing taxa output
+      "trt1count" = (nrow(out1$env)), #Number of permuted sites in treatment #1 
+      "trt2cpsumz-" = out2$sumz.cp[1, 4],
+      "trt2cpsumz+" = out2$sumz.cp[2, 4],
+      "trt2count" = (nrow(out2$env))))
+  }
+}
+
+
+# run four permutations.
+out <- parLapply(cl, 1:4, foo) #Change the number of permutations here
+
+dplyr::bind_rows(out, .id = "permutation")
+
+stopCluster(cl)
+```
+
+
+
+# Permuting Three or more Treatments
+
+If you have three or more treatments and need to permute over them with the
+condition that no station will be in the same treatment more than once on any
+particular permutation and that all treatment labels are viable for each
+station then you can still use the `permute` function. The foo function (above)
+will need to be adjusted to include the additional treatments.
+
+
+# Analyzing the results
+The output from the above code chunk can then be used to compare the differences in change-point
+values for treatments from the observed samples versus the permuted samples. A p-value test can be 
+run on these data to test for statistically significant differences between the treatment effects.
+
+
+# Session Info
+
+
+```{r }
+print(sessionInfo(), local = FALSE)
+```
+
+# References
+
+Baker, M. E., and R. S. King. 2010. A new method for detecting and interpreting biodiversity and ecological community thresholds. Methods in Ecology and Evolution 1:25-37.
+
+Baker, M. E., and R. S. King. 2013. Of TITAN and straw men: an appeal for greater understanding of community data. Freshwater Science 32:489-506.
+
+Baker, M. E., R. S. King, and D, Kahle. An Introduction to TITAN2. Vignette. Version 2.2.901
+
+Baker, M. E., R. S. King, and D, Kahle. 2019.
+  TITAN2: Threshold Indicator Taxa Analysis. R package
+  version 2.4. https://CRAN.R-project.org/package=TITAN2
+
+Greenland, S., Senn, S.J., Rothman, K.J. et al. (2016) Statistical tests, P values, 
+confidence intervals, and power: a guide to misinterpretations. Eur J Epidemiol
+31, 337–350. https://doi.org/10.1007/s10654-016-0149-3
+
+Schenker, N. and J.F. Gentleman (2001) On Judging the Significance of Differences
+by Examining the Overlap Between Confidence Intervals, The American
+Statistician, 55:3, 182-186, DOI: 10.1198/000313001317097960

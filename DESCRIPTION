@@ -1,0 +1,21 @@
+Package: pTITAN2
+Title: Permutations of Treatment Lables and TITAN2 Analysis
+Version: 1.0.0
+Authors@R: c(
+    person("Peter", "DeWitt", email = "pdewitt@neptuneinc.org", role = "aut"),
+    person("Stephanie", "Figary", email = "sef92@cornell.edu", role = c("aut","cre")),
+    person("Naomi", "Detenbeck", email = "detenbeck.naomi@epa.gov", role = "aut"))
+Description: Permutate treatment labels for taxa and environmental gradients to
+    generate an empirical distribution of change points.
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1.9001
+Imports: dplyr (>= 0.7.0), magrittr, rlang, stringr, tidyr, TITAN2
+Suggests: readr, knitr, rmarkdown
+VignetteBuilder: knitr
+Author: Peter DeWitt [aut],
+  Stephanie Figary [aut, cre],
+  Naomi Detenbeck [aut]
+Maintainer: Stephanie Figary <sef92@cornell.edu>
