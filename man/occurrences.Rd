@@ -7,7 +7,7 @@
 occurrences(data, n = 6L)
 }
 \arguments{
-\item{data}{A data frame}
+\item{data}{A \code{data.frame} wit}
 
 \item{n}{the minimum number of occurrences.}
 }
@@ -36,8 +36,36 @@ required the data set to have the column names in alpha order.  This function
 relaxes that requirement by using the \code{\link[dplyr]{arrange}} call.
 }
 \examples{
-\dontrun{
-# Read the vignette
-vignette(topic = "pTITAN2", package = "pTITAN2")
+
+library(magrittr)
+
+# Read in a data set.
+
+CN_06_Mall <-
+ readr::read_csv(file = system.file("extdata", "CN_06_Mall_wID.csv",
+                                    package = "pTITAN2"),
+                 col_types = readr::cols(.default = readr::col_double()))
+
+# Report the tax with at least six occurrences
+
+occurrences(CN_06_Mall[, -1], n = 6)
+
+# Compare results to the raw data were the occurrences of the
+
+CN_06_Mall \%>\%
+  dplyr::select(-StationID) \%>\%
+  tidyr::gather(key = 'taxon', value = 'count') \%>\%
+  dplyr::mutate(Class = stringr::str_sub(.data$taxon, 1, 2),
+                Order = stringr::str_sub(.data$taxon, 3, 4),
+                Family = stringr::str_sub(.data$taxon, 5, 6),
+                Genus  = stringr::str_sub(.data$taxon, 7, 8)) \%>\%
+  dplyr::group_by(.data$Class, .data$Order, .data$Family, .data$Genus) \%>\%
+  dplyr::summarize(taxon = unique(.data$taxon), count = sum(.data$count > 0)) \%>\%
+  dplyr::ungroup() \%>\%
+  dplyr::arrange(.data$Class, .data$Order, .data$Family, .data$Genus)
+
+
 }
+\seealso{
+\code{vignette(topic = "pTITAN2", package = "pTITAN2")}
 }
