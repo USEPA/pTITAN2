@@ -18,10 +18,11 @@ Imports:
   magrittr,
   rlang,
   stringr,
-  tidyr,
-  TITAN2
+  tidyr
 Suggests:
   readr,
   knitr,
   rmarkdown
+Enhances:
+  TITAN2
 VignetteBuilder: knitr
