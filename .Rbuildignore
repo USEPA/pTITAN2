@@ -1,0 +1,5 @@
+^.*\.Rout$
+^.*\.tar\.gz$
+^Makefile$
+^.*\.Rproj$
+^\.Rproj\.user$
