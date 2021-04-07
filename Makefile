@@ -5,6 +5,10 @@ PKG_NAME    = $(shell gawk '/^Package:/{print $$2}' $(PKG_ROOT)/DESCRIPTION)
 CRAN = "https://cran.rstudio.com"
 
 # General Package Dependencies
+DATA      = $(PKG_ROOT)/data/C_IC_N_06_wID.rda
+DATA     += $(PKG_ROOT)/data/C_IC_D_06_wID.rda
+DATA     += $(PKG_ROOT)/data/CD_06_Mall_wID.rda
+DATA     += $(PKG_ROOT)/data/CN_06_Mall_wID.rda
 RFILES    = $(wildcard $(PKG_ROOT)/R/*.R)
 EXAMPLES  = $(wildcard $(PKG_ROOT)/examples/*.R)
 TESTS     = $(wildcard $(PKG_ROOT)/tests/testthat/*.R)
@@ -16,7 +20,7 @@ TESTS     = $(wildcard $(PKG_ROOT)/tests/testthat/*.R)
 
 all: $(PKG_NAME)_$(PKG_VERSION).tar.gz
 
-$(PKG_NAME)_$(PKG_VERSION).tar.gz: .install_dev_deps.Rout .document.Rout $(VIGNETTES) $(TESTS)
+$(PKG_NAME)_$(PKG_VERSION).tar.gz: .install_dev_deps.Rout .document.Rout $(VIGNETTES) $(TESTS) $(DATA)
 	R CMD build --md5 $(build-options) $(PKG_ROOT)
 
 .install_dev_deps.Rout : $(PKG_ROOT)/DESCRIPTION
@@ -30,6 +34,10 @@ $(PKG_NAME)_$(PKG_VERSION).tar.gz: .install_dev_deps.Rout .document.Rout $(VIGNE
 	Rscript --vanilla --quiet -e "options(warn = 2)" \
 		-e "devtools::document('$(PKG_ROOT)')"
 	@touch $@
+
+$(PKG_ROOT)/data/%.rda : inst/extdata/%.csv
+	Rscript --vanilla -e "$(basename $(notdir $<)) <- read.csv('$<')"\
+		-e "save($(basename $(notdir $<)), file = '$@')"
 
 check: $(PKG_NAME)_$(PKG_VERSION).tar.gz
 	Rscript --vanilla --quiet -e "options(repo = c('$(CRAN)'))" \
