@@ -37,13 +37,14 @@ relaxes that requirement by using the \code{\link[dplyr]{arrange}} call.
 }
 \examples{
 
-library(magrittr)
 
 # Report the tax with at least six occurrences
 
 occurrences(CN_06_Mall_wID[, -1], n = 6)
 
 # Compare results to the raw data were the occurrences of the
+
+library(magrittr)
 
 CN_06_Mall_wID \%>\%
   dplyr::select(-StationID) \%>\%
