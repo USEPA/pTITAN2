@@ -31,20 +31,13 @@
 #'
 #' library(magrittr)
 #'
-#' # Read in a data set.
-#'
-#' CN_06_Mall <-
-#'  readr::read_csv(file = system.file("extdata", "CN_06_Mall_wID.csv",
-#'                                     package = "pTITAN2"),
-#'                  col_types = readr::cols(.default = readr::col_double()))
-#'
 #' # Report the tax with at least six occurrences
 #'
-#' occurrences(CN_06_Mall[, -1], n = 6)
+#' occurrences(CN_06_Mall_wID[, -1], n = 6)
 #'
 #' # Compare results to the raw data were the occurrences of the
 #'
-#' CN_06_Mall %>%
+#' CN_06_Mall_wID %>%
 #'   dplyr::select(-StationID) %>%
 #'   tidyr::gather(key = 'taxon', value = 'count') %>%
 #'   dplyr::mutate(Class = stringr::str_sub(.data$taxon, 1, 2),
