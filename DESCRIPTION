@@ -3,7 +3,7 @@ Title: Permutations of Treatment Lables and TITAN2 Analysis
 Version: 1.0.0.9000
 Authors@R: c(
     person(given = "Peter",     family = "DeWitt",    email = "peter.dewitt@cuanschutz.edu",          role = c("aut"),        comment = c(ORCID = "0000-0002-6391-0795")),
-    person(given = "Stephanie", family = "Figary",    email = "sef92@cornell.edu",                    role = c("aut", "cre")),
+    person(given = "Stephanie", family = "Figary",    email = "sef92@cornell.edu",                    role = c("aut", "cre")), comment = c(ORCID = "0000-0002-4876-9850")),
     person(given = "Naomi",     family = "Detenbeck", email = "detenbeck.naomi@epa.gov",              role = c("aut"))
  )
 Description: Permutate treatment labels for taxa and environmental gradients to
