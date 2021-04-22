@@ -311,12 +311,12 @@ chaparral_envgrad_dry <-
 
 # set up the cluster
 library(parallel)
-cl <- parallel::makePSOCKcluster(2)
-clusterEvalQ(cl, {require(pTITAN2); require(TITAN2); require(dplyr) })
-
-clusterExport(cl,
-              c("CD_06_Mall", "CN_06_Mall",
-                "chaparral_envgrad_dry", "chaparral_envgrad_normal"))
+cl <- parallel::makeForkCluster(nnodes = 2L)  # This works on Unix-alike; just a stub on Windows
+# clusterEvalQ(cl, {require(pTITAN2); require(TITAN2); require(dplyr) })
+# 
+# clusterExport(cl,
+#               c("CD_06_Mall", "CN_06_Mall",
+#                 "chaparral_envgrad_dry", "chaparral_envgrad_normal"))
 
 
 # generate a generic function to permute the data and run titan. This will be
