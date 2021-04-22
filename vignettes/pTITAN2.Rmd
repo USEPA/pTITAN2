@@ -311,7 +311,7 @@ chaparral_envgrad_dry <-
 
 # set up the cluster
 library(parallel)
-cl <- parallel::makeCluster(2, setup_strategy = "sequential")
+cl <- parallel::makePSOCKcluster(2)
 clusterEvalQ(cl, {require(pTITAN2); require(TITAN2); require(dplyr) })
 
 clusterExport(cl,
