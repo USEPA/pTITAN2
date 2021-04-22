@@ -10,7 +10,7 @@ DATA     += $(PKG_ROOT)/data/C_IC_D_06_wID.rda
 DATA     += $(PKG_ROOT)/data/CD_06_Mall_wID.rda
 DATA     += $(PKG_ROOT)/data/CN_06_Mall_wID.rda
 RFILES    = $(wildcard $(PKG_ROOT)/R/*.R)
-EXAMPLES  = $(wildcard $(PKG_ROOT)/examples/*.R)
+VIGNETTES = $(wildcard $(PKG_ROOT)/vignettes/*.Rmd)
 TESTS     = $(wildcard $(PKG_ROOT)/tests/testthat/*.R)
 
 ################################################################################
