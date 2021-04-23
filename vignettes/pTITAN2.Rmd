@@ -290,7 +290,8 @@ used and TITAN bootstrapping is limited to five iterations. In an actual analysi
 be much higher. This process is very computationally intensive and can take hours or days to run
 depending on the available computing power and the number of bootstraps and permutations used.
 
-```{r }
+```{r, eval = .Platform$OS.type == "unix"}
+
 # Re-import the data.
 CN_06_Mall <-
   readr::read_csv(file = system.file("extdata", "CN_06_Mall_wID.csv",
@@ -311,12 +312,7 @@ chaparral_envgrad_dry <-
 
 # set up the cluster
 library(parallel)
-cl <- parallel::makeForkCluster(nnodes = 2L)  # This works on Unix-alike; just a stub on Windows
-# clusterEvalQ(cl, {require(pTITAN2); require(TITAN2); require(dplyr) })
-# 
-# clusterExport(cl,
-#               c("CD_06_Mall", "CN_06_Mall",
-#                 "chaparral_envgrad_dry", "chaparral_envgrad_normal"))
+cl <- parallel::makeForkCluster(nnodes = 2L)  # This works on Unix-alike -- Windows requires a different approarch
 
 
 # generate a generic function to permute the data and run titan. This will be
