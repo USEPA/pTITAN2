@@ -172,7 +172,7 @@ CN_06_Mall %>%
   dplyr::summarize(taxon = unique(.data$taxon), count = sum(.data$count > 0)) %>%
   dplyr::ungroup() %>%
   # dplyr::filter(count >= 6L) %>%
-  dplyr::arrange(.data$Class, .data$Order, .data$Family, .data$Genus) %>% head()
+  dplyr::arrange(.data$Class, .data$Order, .data$Family, .data$Genus) %>% head(n=10)
 
 ```
 
