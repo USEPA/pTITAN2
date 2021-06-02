@@ -383,7 +383,7 @@ values for treatments from the observed samples versus the permuted samples. A p
 run on these data to test for statistically significant differences between the treatment effects.
 
 ```{r}
-#Run TITAN on the observed data-------
+#Run TITAN on the observed data
 CD_obs <- TITAN2::titan(
   env  = dplyr::select(chaparral_envgrad_dry, ImpCover),
              txa  = dplyr::select(chaparral_taxon_dry, 
@@ -406,12 +406,9 @@ CN_obs  <- TITAN2::titan(
   nBoot = 50,
                 silent = TRUE)
 
-#bring in saved TITAN$sumz data for all four regions
-CD <- as.data.frame(CD_obs$sumz)
-CN <- as.data.frame(CN_obs$sumz)
-
-#create a table of the median change point from TITAN to be used to calculate p-values
-TITAN_med <-  rbind(CD, CN) %>%
+#create a table of the median change point from TITAN for calculating the p-values
+TITAN_med <-  rbind(as.data.frame(CD_obs$sumz),
+                    as.data.frame(CN_obs$sumz)) %>%
   cbind(run = c(rep("Tr1_CD", 4),
                 rep("Tr2_CN", 4))) %>%
   cbind(sumz = rep(c("sumz-", "sumz+", "fsumz-", "fsumz+")))  %>% 
@@ -422,8 +419,7 @@ TITAN_med <-  rbind(CD, CN) %>%
     T1T2_abs = abs(Tr1_CD - Tr2_CN)
   )
 
-#Create a summary table of the permutation data-------
-#reorganize the filtered permutations
+#Create a summary table of the permutation data
 perm <- dplyr::bind_rows(out, .id = "permutation") #out is the permuated data
 
 tr1_filt <-
@@ -450,7 +446,7 @@ out_perm <- left_join(tr1_filt, tr2_filt) %>%
     T1T2_abs = abs(Tr1_CD - Tr2_CN)
   ) %>% select(-permutation)
 
-# Calulating the p-values -----------------------------------------------
+#Calulate the p-values 
 data_frame(treatment = "T1T2_CDCN", 
                   "fsumz-" = (sum((
   filter(out_perm, sumz == "fsumz-")$T1T2_abs >
