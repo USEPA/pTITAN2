@@ -392,8 +392,7 @@ CD_obs <- TITAN2::titan(
                                   n = 6)$taxon),
       ncpus = 3,
   numPerm = 50,
-  nBoot = 50,
-                silent = TRUE)
+  nBoot = 50)
 
 CN_obs  <- TITAN2::titan(
   env  = dplyr::select(chaparral_envgrad_normal, ImpCover),
@@ -403,8 +402,7 @@ CN_obs  <- TITAN2::titan(
                                   n = 6)$taxon),
       ncpus = 3,
   numPerm = 50,
-  nBoot = 50,
-                silent = TRUE)
+  nBoot = 50)
 
 #create a table of the median change point from TITAN for calculating the p-values
 TITAN_med <-  rbind(as.data.frame(CD_obs$sumz),
@@ -447,7 +445,7 @@ out_perm <- left_join(tr1_filt, tr2_filt) %>%
   ) %>% select(-permutation)
 
 #Calulate the p-values 
-data_frame(treatment = "T1T2_CDCN", 
+tibble(treatment = "T1T2_CDCN", 
                   "fsumz-" = (sum((
   filter(out_perm, sumz == "fsumz-")$T1T2_abs >
     (filter(TITAN_med, sumz == "fsumz-")$T1T2_abs)
