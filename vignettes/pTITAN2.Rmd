@@ -382,6 +382,88 @@ The output from the above code chunk can then be used to compare the differences
 values for treatments from the observed samples versus the permuted samples. A p-value test can be 
 run on these data to test for statistically significant differences between the treatment effects.
 
+```{r}
+#Run TITAN on the observed data-------
+CD_obs <- TITAN2::titan(
+  env  = dplyr::select(chaparral_envgrad_dry, ImpCover),
+             txa  = dplyr::select(chaparral_taxon_dry, 
+                            occurrences(dplyr::select(chaparral_taxon_dry,
+                           Ar000000:Tu000000),
+                                  n = 6)$taxon),
+      ncpus = 3,
+  numPerm = 50,
+  nBoot = 50,
+                silent = TRUE)
+
+CN_obs  <- TITAN2::titan(
+  env  = dplyr::select(chaparral_envgrad_normal, ImpCover),
+             txa  = dplyr::select(chaparral_taxon_normal, 
+                            occurrences(dplyr::select(chaparral_taxon_normal,
+                           Ar000000:Tu000000),
+                                  n = 6)$taxon),
+      ncpus = 3,
+  numPerm = 50,
+  nBoot = 50,
+                silent = TRUE)
+
+#bring in saved TITAN$sumz data for all four regions
+CD <- as.data.frame(CD_obs$sumz)
+CN <- as.data.frame(CN_obs$sumz)
+
+#create a table of the median change point from TITAN to be used to calculate p-values
+TITAN_med <-  rbind(CD, CN) %>%
+  cbind(run = c(rep("Tr1_CD", 4),
+                rep("Tr2_CN", 4))) %>%
+  cbind(sumz = rep(c("sumz-", "sumz+", "fsumz-", "fsumz+")))  %>% 
+  dplyr::select(run, sumz,  "0.50")  %>% 
+  tidyr::pivot_wider(names_from = run,
+              values_from = "0.50") %>%
+  dplyr::mutate(
+    T1T2_abs = abs(Tr1_CD - Tr2_CN)
+  )
+
+#Create a summary table of the permutation data-------
+#reorganize the filtered permutations
+perm <- dplyr::bind_rows(out, .id = "permutation") #out is the permuated data
+
+tr1_filt <-
+  dplyr::select(perm, permutation, `trt1cpsumz-`,	`trt1cpsumz+`) %>% 
+  tidyr::pivot_longer(cols = `trt1cpsumz-`:`trt1cpsumz+`,
+              values_to = "Tr1_CD",
+              names_to = "sumz")
+
+tr1_filt[which(tr1_filt$sumz == "trt1cpsumz-"), 2] <- "fsumz-"
+tr1_filt[which(tr1_filt$sumz == "trt1cpsumz+"), 2] <- "fsumz+"
+
+tr2_filt <-
+  dplyr::select(perm, permutation, `trt2cpsumz-`,	`trt2cpsumz+`) %>% #out is the permuated data
+  tidyr::pivot_longer(cols = `trt2cpsumz-`:`trt2cpsumz+`,
+               values_to = "Tr2_CN",
+               names_to = "sumz")
+tr2_filt[which(tr2_filt$sumz == "trt2cpsumz-"), 2] <- "fsumz-"
+tr2_filt[which(tr2_filt$sumz == "trt2cpsumz+"), 2] <- "fsumz+"
+
+
+#mutate the data and create a summary table for calculating p-values
+out_perm <- left_join(tr1_filt, tr2_filt) %>%
+  mutate(
+    T1T2_abs = abs(Tr1_CD - Tr2_CN)
+  ) %>% select(-permutation)
+
+# Calulating the p-values -----------------------------------------------
+data_frame(treatment = "T1T2_CDCN", 
+                  "fsumz-" = (sum((
+  filter(out_perm, sumz == "fsumz-")$T1T2_abs >
+    (filter(TITAN_med, sumz == "fsumz-")$T1T2_abs)
+)) + 1) / 1001, "fsumz+" =
+  (sum((
+    filter(out_perm, sumz == "fsumz+")$T1T2_abs >
+      (filter(TITAN_med, sumz == "fsumz+")$T1T2_abs)
+  )) + 1) / 1001)
+
+
+```
+
 
 # Session Info
 
