@@ -354,7 +354,14 @@ str(eg, max.level = 2L)
 The most computationally expensive part of this work is calling
 `TITAN2::titan` many, many times. A good option is to use the parallel
 package to send the task of permuting the data and running `TITAN2::titan()`
-to individual processing cores.
+to individual processing cores.  Parallel computing is platform specific.  An
+example script for how to run `TITAN2::titan` as a parallel process can be found
+in the provided example script:
+
+```{r}
+# file.open(system.file())
+```
+
 
 Example:
 The below code chunk provides an example of inputting data for TITAN, permuting the
@@ -365,80 +372,7 @@ used and TITAN bootstrapping is limited to five iterations. In an actual analysi
 be much higher. This process is very computationally intensive and can take hours or days to run
 depending on the available computing power and the number of bootstraps and permutations used.
 
-```{r, }
-# Re-import the data.
-CN_06_Mall <-
-  readr::read_csv(file = system.file("extdata", "CN_06_Mall_wID.csv",
-                                     package = "pTITAN2"),
-                  col_types = readr::cols(.default = readr::col_double()))
-CD_06_Mall <-
-  readr::read_csv(file = system.file("extdata", "CD_06_Mall_wID.csv",
-                                     package = "pTITAN2"),
-                  col_types = readr::cols(.default = readr::col_double()))
-
-chaparral_envgrad_normal <-
-  readr::read_csv(system.file("extdata", "C_IC_N_06_wID.csv", package = "pTITAN2"),
-                  col_types = readr::cols(.default = readr::col_double()))
-chaparral_envgrad_dry <-
-  readr::read_csv(system.file("extdata", "C_IC_D_06_wID.csv", package = "pTITAN2"),
-                  col_types = readr::cols(.default = readr::col_double()))
-```
-
-```{r, eval = .Platform$OS.type == "unix"
-# set up the cluster
-library(parallel)
-cl <- parallel::makeForkCluster(nnodes = 2L)  # This works on Unix-alike -- Windows requires a different approarch
-
-
-# generate a generic function to permute the data and run titan. This will be
-# used in parallel::parLapply.  This function will return NA if an error occurs
-# or the `sumz.cp` element of a titan run if the permuation and titan runs
-# succeed. The number of bootstraps can be selected at 'nBoot,' which is
-# set to five for this example
-foo <- function(x) {
-  p <- suppressMessages(permute(taxa = list(CD_06_Mall, CN_06_Mall),
-                                envs = list(chaparral_envgrad_dry, chaparral_envgrad_normal),
-                                sid = StationID))
-  if (is.null(p)) {
-    return(NA)
-  } else {
-
-    Treat1_codes <- dplyr::select(p$Treatment1$taxa,
-                                  occurrences(p$Treatment1$taxa, n = 6L)$taxon)
-    Treat2_codes <- dplyr::select(p$Treatment2$taxa,
-                                  occurrences(p$Treatment2$taxa, n = 6L)$taxon)
-    out1 <- try(TITAN2::titan(env  = p$Treatment1$env,
-                              txa  = Treat1_codes,
-                              boot = TRUE,
-                              nBoot = 5), #Change the number of bootstraps here
-                silent = TRUE)
-    out2 <- try(TITAN2::titan(env  = p$Treatment2$env,
-                              txa  = Treat2_codes,
-                              boot = TRUE,
-                              nBoot = 5),
-                silent = TRUE)
-  }#This chunk can be altered to include more treatments, if needed
-
-  if ("try-error" %in% c(class(out1), class(out2))) {
-    return(NA)
-  } else {
-    return(dplyr::data_frame(
-      "trt1cpsumz-" = out1$sumz.cp[1, 4], #decreasing taxa output
-      "trt1cpsumz+" = out1$sumz.cp[2, 4], #increasing taxa output
-      "trt1count" = (nrow(out1$env)), #Number of permuted sites in treatment #1
-      "trt2cpsumz-" = out2$sumz.cp[1, 4],
-      "trt2cpsumz+" = out2$sumz.cp[2, 4],
-      "trt2count" = (nrow(out2$env))))
-  }
-}
-
-
-# run four permutations.
-out <- parLapply(cl, 1:4, foo) #Change the number of permutations here
-
-dplyr::bind_rows(out, .id = "permutation")
-
-stopCluster(cl)
+```{r }
 ```
 
 
