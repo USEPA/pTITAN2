@@ -1,5 +1,6 @@
 ---
-title: "pTITAN2: Permutation of Treatment Labels and Threshold Indicator Taxa ANalysis"
+title: "pTITAN2"
+subtitle: "Permutation of Treatment Labels and Threshold Indicator Taxa ANalysis"
 author: "Stephanie Figary^1^, Peter E. DeWitt^2,3,4^, and Naomi Detenbeck^5^"
 output: rmarkdown::html_vignette
 bibliography: references.bib
@@ -18,7 +19,7 @@ vignette: >
 
 ```{r label=setup, include = FALSE}
 library(knitr)
-knitr::opts_chunk$set(collapse = TRUE, eval = FALSE)
+knitr::opts_chunk$set(collapse = TRUE)
 ```
 
 ## Abstract
@@ -48,63 +49,81 @@ Index, which serve as the treatments in this example.
 
 # Introduction
 
-The pTITAN2 program presented here is an extension of the pre-existing Taxa
-Indicator Threshold ANalysis (TITAN2) program developed by Baker and King (2010)
-and subsequently refined by @baker2010new. TITAN is useful for determining
-the impacts of environmental gradients such as upstream impervious cover (IC) in
-a watershed in community ecology studies because it analyzes each individual
-taxa response and the community as a whole in the same analysis. Additionally,
-unlike other community ecology methods, TITAN separates the taxa that increase
-across an environmental gradient from those that decrease to provide a more
-complete picture of the community response to that gradient.
+Community ecologists are interested in understanding the structure and
+interactions of multiple species in a given area or habitat type and many are
+interested in understanding how communities change in response to changing
+environmental or anthropogenic gradients. One method a community ecologist can
+use for understanding to detect changes or ecological thresholds across
+environmental gradients is Taxa Indicator Threshold ANalysis (TITAN)
+[@baker2010new]. TITAN is useful for determining the impacts of environmental or
+anthropogenic gradients such as upstream impervious cover (IC) in a watershed in
+community ecology studies because it both analyzes each individual taxa response
+and the community as a whole in the same analysis. Additionally, unlike other
+community ecology methods, TITAN separates the taxa that increase across an
+environmental gradient from those that decrease to provide a more complete
+picture of the community response to that gradient.
 
-TITAN methods use change point (King and Richardson 2003, Qian et al. 2003) and
-indicator species analysis (Dufrene and Legendre 1997) to determine the point
-along an environmental gradient, such as % IC in the upstream watershed area,
-where individual taxa have the largest change in occurrence frequency and
-abundance, and then uses the individual taxa results to determine synchronous
-areas of taxa change at the community level (Baker and King 2010, 2013).
-Individual taxa change points are determined by calculating the taxa’s indicator
-(IndVal) score along the environmental gradient and assigning the taxa as either
-increasing (z+) or declining (z-) in response to an increase in the
-environmental gradient variable. Permutations of data in TITAN runs are used to
-calculate the likelihood of random data generating a larger IndVal score than
-the observed data and to standardize the taxa response to the environmental
-gradient by calculating the taxa z-scores using permuted distributions. Taxa
-z-scores are added together for increasing (z+) and declining (z-) taxa along
-the environmental gradient and the point with the highest sum(z-) and sum(z+)
-score is defined as the community change point. Next, bootstrapping of observed
-data is used to calculate percentiles around the community and individual taxa
-z-scores, and to determine if individual taxon responses are pure and reliable.
-Purity is a measure of the proportion of bootstrap results that match the taxa’s
-observed response group as either increasing or declining. Reliability is the
-proportion of bootstraps with a low probability (p < 0.01) of random data having
-a higher IndVal score than the bootstrapped observed data. Community change
-points are also calculated after selecting (filtering) only the taxa that
-exceeded purity and reliability requirements for the increasing (fsum(z+)) and
-declining (fsum(z-)) change points. Narrow peaks around the maximum sum(z) or
-fsum(z) (filtered) scores indicate areas with synchronous change in individual
-taxa frequency and abundance and may indicate an ecological threshold along the
-environmental gradient being evaluated.
+As an overview, TITAN methods use change point
+[@king2003integrating;@qian2003two] and indicator species analysis
+[@dufrene1997species]
+to determine the point along an environmental gradient, such as percent IC in the
+upstream watershed area, where individual taxa have the largest change in
+occurrence frequency and abundance, and then uses the individual taxa results to
+determine synchronous areas of taxa change at the community level
+[@baker2010new;@baker2013titan]
+Individual taxa change points are determined by calculating
+the taxa’s indicator (IndVal) score along the environmental gradient and
+assigning the taxa as either increasing (z+) or declining (z-) in response to an
+increase in the environmental gradient variable. Permutations of data in TITAN
+runs are used to calculate the likelihood of random data generating a larger
+IndVal score than the observed data and to standardize the taxa response to the
+environmental gradient by calculating the taxa z-scores using permuted
+distributions. Taxa z-scores are added together for increasing (z+) and
+declining (z-) taxa along the environmental gradient and the point with the
+highest sum(z-) and sum(z+) score is defined as the community change point.
+Next, bootstrapping of observed data is used to calculate percentiles around the
+community and individual taxa z-scores, and to determine if individual taxon
+responses are pure and reliable. Purity is a measure of the proportion of
+bootstrap results that match the taxa’s observed response group as either
+increasing or declining. Reliability is the proportion of bootstraps with a low
+probability (p &lt; 0.01) of random data having a higher IndVal score than the
+bootstrapped observed data. Community change points are also calculated after
+selecting (filtering) only the taxa that exceeded purity and reliability
+requirements for the increasing (fsum(z+)) and declining (fsum(z-)) change
+points. Narrow peaks around the maximum sum(z) or fsum(z) (filtered) scores
+indicate areas with synchronous change in individual taxa frequency and
+abundance and may indicate an ecological threshold along the environmental
+gradient being evaluated. More information on TITAN methods can be found in
+@baker2013titan or in the TITAN R package, TITAN2, [@R-TITAN2].
 
+While TITAN is a powerful tool for community ecologist it requires additional
+analysis for comparing results from different regions, groups or treatments.
+Previously, researchers have used nonoverlapping confidence intervals for
+changepoints from TITAN output to indicate significant differences between
+groups [@king2011novel]. 2011). However, although nonoverlapping confidence intervals
+can indicate significant differences, overlapping confidence intervals do not
+necessarily mean the null hypothesis cannot be rejected
+[@greenland2016statistical;@schenker2001judging].
 
-
-EDIT BELOW
-
+We developed a new R package, pTITAN2, as an extension of the existing TITAN2 R
+package [@R-TITAN2]. The goal of pTITAN2 is to enable comparisons of
+TITAN output between treatments by permutating the observed data between
+treatments and rerunning TITAN on the permuted data. There are some limitations
+on the permutations, including (1) a sampling site cannot occur in a category
+more than once, the same limitation as in the original TITAN runs and (2) the
+original sample size distribution is maintained. This addresses potential sample
+size effects and enables comparisons between treatments with different sample
+sizes more accurately than using nonoverlapping confidence intervals. A vignette
+is provided based on a dataset of macroinvertebrate data from California streams
+that fall along a gradient of watershed percent impervious cover. We compare
+changepoints among different climate conditions (wet, average, and dry) based on
+the Palmer Drought Severity Index, which serve as the treatments in this
+example.
 
 To reproduce the examples in this vignette you will need to load and attach
 the `pTITAN2` namespace and the `magrittr` namespace for the piping
-operators. All other name spaces are used explicitly.
-
-For more background on TITAN, please see:
-Baker, M. E., and R. S. King. 2010. A new method for detecting and interpreting biodiversity and ecological community thresholds. Methods in Ecology and Evolution 1:25-37.
-Baker, M. E., and R. S. King. 2013. Of TITAN and straw men: an appeal for greater understanding of community data. Freshwater Science 32:489-506.
-
-For more information on the TITAN2 package and the TITAN function, used in pTITAN2, please see:
-Baker, M. E., R. S. King, and D, Kahle. An Introduction to TITAN2. Vignette. Version 2.2.901
-Baker, M. E., R. S. King, and D, Kahle. 2019.
-  TITAN2: Threshold Indicator Taxa Analysis. R package
-  version 2.4. https://CRAN.R-project.org/package=TITAN2
+operators.  `dplyr` is useful as several of the methods in pTITAN2 are based on
+`dplyr` functions.
 
 ```{r }
 set.seed(42)
@@ -113,6 +132,7 @@ library(magrittr)
 library(dplyr)
 ```
 # Example data
+
 This vignette provides examples for using the pTITAN2 tools in
 this package. Example data sets are from publicly available
 macroinvertebrate survey data from California.
@@ -124,11 +144,9 @@ are data from either drought (dry) or normal precipitation years in the Chaparra
 The data structure that is shown here is not required for pTITAN2. Instead the environmental
 variables and treatments could be in a single data file and filtered/selected as needed.
 
-
 ```{r label="list-example-data-sets"}
 list.files(system.file("extdata", package = "pTITAN2"))
 ```
-
 
 File                 Data Type              Region       Treatment
 ----------------     ---------------------- -----------  ---------
@@ -139,6 +157,7 @@ File                 Data Type              Region       Treatment
 
 
 # Selecting macroinvertebrate density data for TITAN
+
 A new function in pTITAN2 is the occurrences function. This is an extension for
 deciding the taxonomic detail to be included in a TITAN run based on `minSplt` in TITAN.
 `minSplt` is minimum number of occurrences that TITAN is looking for
@@ -176,7 +195,7 @@ CD_06_Mall <-
                                      package = "pTITAN2"),
                   col_types = readr::cols(.default = readr::col_double()))
 
-CN_06_Mall
+str(CN_06_Mall)
 ```
 
 
@@ -294,7 +313,7 @@ Before we can run `permute`, we need to import the environmental gradients
 data.
 
 ```{r }
-chaparral_envgrad_normal <-
+c All other name spaces are used explicitly.haparral_envgrad_normal <-
   readr::read_csv(system.file("extdata", "C_IC_N_06_wID.csv", package = "pTITAN2"),
                   col_types = readr::cols(.default = readr::col_double()))
 chaparral_envgrad_dry <-
@@ -346,8 +365,7 @@ used and TITAN bootstrapping is limited to five iterations. In an actual analysi
 be much higher. This process is very computationally intensive and can take hours or days to run
 depending on the available computing power and the number of bootstraps and permutations used.
 
-```{r, eval = FALSE}
-#eval = .Platform$OS.type == "unix"
+```{r, }
 # Re-import the data.
 CN_06_Mall <-
   readr::read_csv(file = system.file("extdata", "CN_06_Mall_wID.csv",
@@ -364,8 +382,9 @@ chaparral_envgrad_normal <-
 chaparral_envgrad_dry <-
   readr::read_csv(system.file("extdata", "C_IC_D_06_wID.csv", package = "pTITAN2"),
                   col_types = readr::cols(.default = readr::col_double()))
+```
 
-
+```{r, eval = .Platform$OS.type == "unix"
 # set up the cluster
 library(parallel)
 cl <- parallel::makeForkCluster(nnodes = 2L)  # This works on Unix-alike -- Windows requires a different approarch
