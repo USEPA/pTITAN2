@@ -287,19 +287,10 @@ Before we can run `permute`, we need to import the environmental gradients
 data.
 
 ```{r }
-data(C_IC_N_06_wID, C_IC_D_06_wID, package = "pTITAN2")
-chaparral_envgrad_normal <- C_IC_N_06_wID
-chaparral_envgrad_dry    <- C_IC_D_06_wID
-str(chaparral_envgrad_normal)
-str(chaparral_envgrad_dry)
-```
-
-
-```{r }
 eg <- permute(
-              taxa = list(chaparral_taxon_dry, chaparral_taxon_normal)
+              taxa = list(CD_06_Mall_wID, CN_06_Mall_wID)
               ,
-              envs = list(chaparral_envgrad_dry, chaparral_envgrad_normal)
+              envs = list(C_IC_D_06_wID, C_IC_N_06_wID)
               ,
               sid = "StationID"
               )
@@ -309,6 +300,7 @@ The result of the `permute` call is a list of lists.
 
 ```{r }
 str(eg, max.level = 1L)
+eg
 ```
 
 The first level denotes the treatment  In this example `Treatment1` is
