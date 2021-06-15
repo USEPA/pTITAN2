@@ -233,15 +233,10 @@ provided and split into its component parts, and the counts.
 
 
 ```{r }
-CN_06_Mall_wID %>%
-  dplyr::select(-StationID) %>%
-  occurrences(., n = 6L) %>%
-  head()
+occurrences(CN_06_Mall_wID[, -1], n = 6L)
 ```
 
-
 Compare these results to the (present) counts from the raw data:
-
 
 ```{r }
 CN_06_Mall_wID %>%
@@ -254,7 +249,7 @@ CN_06_Mall_wID %>%
   dplyr::group_by(.data$Class, .data$Order, .data$Family, .data$Genus) %>%
   dplyr::summarize(taxon = unique(.data$taxon), count = sum(.data$count > 0)) %>%
   dplyr::ungroup() %>%
-  # dplyr::filter(count >= 6L) %>%
+  dplyr::filter(count >= 6L) %>%
   dplyr::arrange(.data$Class, .data$Order, .data$Family, .data$Genus) %>% head(n=10)
 ```
 

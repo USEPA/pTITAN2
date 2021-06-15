@@ -34,23 +34,6 @@
 #'
 #' occurrences(CN_06_Mall_wID[, -1], n = 6)
 #'
-#' # Compare results to the raw data were the occurrences of the
-#'
-#' library(magrittr)
-#'
-#' CN_06_Mall_wID %>%
-#'   dplyr::select(-StationID) %>%
-#'   tidyr::gather(key = 'taxon', value = 'count') %>%
-#'   dplyr::mutate(Class = stringr::str_sub(.data$taxon, 1, 2),
-#'                 Order = stringr::str_sub(.data$taxon, 3, 4),
-#'                 Family = stringr::str_sub(.data$taxon, 5, 6),
-#'                 Genus  = stringr::str_sub(.data$taxon, 7, 8)) %>%
-#'   dplyr::group_by(.data$Class, .data$Order, .data$Family, .data$Genus) %>%
-#'   dplyr::summarize(taxon = unique(.data$taxon), count = sum(.data$count > 0)) %>%
-#'   dplyr::ungroup() %>%
-#'   dplyr::arrange(.data$Class, .data$Order, .data$Family, .data$Genus)
-#'
-#'
 #' @export
 occurrences <-function(data, n = 6L) {
   UseMethod("occurrences")
@@ -72,36 +55,56 @@ occurrences.data.frame <- function(data, n = 6L) {
                  call. = FALSE)
   }
 
-  taxon_count <-
-    data %>%
-    tidyr::gather(key = "taxon", value = "count") %>%
-    dplyr::mutate(Class = stringr::str_sub(.data$taxon, 1, 2),
-                  Order = stringr::str_sub(.data$taxon, 3, 4),
-                  Family = stringr::str_sub(.data$taxon, 5, 6),
-                  Genus  = stringr::str_sub(.data$taxon, 7, 8)) %>%
-    dplyr::group_by(.data$Class, .data$Order, .data$Family, .data$Genus) %>%
-    dplyr::summarize(taxon = unique(.data$taxon), count = sum(.data$count > 0)) %>%
-    dplyr::ungroup() %>%
-    dplyr::filter(.data$count >= n) %>%
-    dplyr::arrange(.data$Class, .data$Order, .data$Family, .data$Genus)
+  taxon_count <- data.table::copy(data)
+  taxon_count <- data.table::setDT(taxon_count)
+  for(j in as.integer(which(sapply(taxon_count, is.integer)))) {
+    data.table::set(taxon_count, j = j, value = as.numeric(taxon_count[[j]]))
+  }
 
-  keep_Genus <- dplyr::filter(taxon_count, .data$Genus != "00")
-  taxon_count %<>%
-    dplyr::anti_join(keep_Genus, by = c("Class", "Order", "Family"))
+  taxon_count <- data.table::melt(taxon_count, variable.factor = FALSE, measure.vars = names(taxon_count), variable.name = "taxon")
+  taxon_count <- subset(taxon_count, taxon_count[["value"]] > 0)
 
-  keep_Family <- dplyr::filter(taxon_count, .data$Family != "00")
-  taxon_count %<>%
-    dplyr::anti_join(keep_Genus,  by = c("Class", "Order")) %>%
-    dplyr::anti_join(keep_Family, by = c("Class", "Order"))
+  data.table::set(taxon_count, j = "Class", value = substr(taxon_count[["taxon"]], 1L, 2L))
+  data.table::set(taxon_count, j = "Order", value = substr(taxon_count[["taxon"]], 3L, 4L))
+  data.table::set(taxon_count, j = "Family", value = substr(taxon_count[["taxon"]], 5L, 6L))
+  data.table::set(taxon_count, j = "Genus", value = substr(taxon_count[["taxon"]], 7L, 8L))
+  data.table::set(taxon_count, j = "value", value = NULL)
 
-  keep_Order <- dplyr::filter(taxon_count, .data$Order != "00")
-  taxon_count %<>%
-    dplyr::anti_join(keep_Genus, by = c("Class")) %>%
-    dplyr::anti_join(keep_Family, by = c("Class")) %>%
-    dplyr::anti_join(keep_Order, by = c("Class"))
+  for (i in unique(taxon_count[["taxon"]])) {
+    idx <- which(taxon_count[["taxon"]] == i)
+    data.table::set(taxon_count, i = idx, j = "count", value = length(idx))
+  }
+  taxon_count <- unique(taxon_count)
+  taxon_count <- subset(taxon_count, taxon_count[["count"]] >= n)
+  data.table::setkeyv(taxon_count, c("Class", "Order", "Family", "Genus"))
 
-  list(taxon_count, keep_Genus, keep_Family, keep_Order) %>%
-    dplyr::bind_rows() %>%
-    dplyr::arrange(.data$taxon)
+  keep_Genus <- subset(taxon_count, taxon_count[["Genus"]] != "00")
+  # program antijoins
+  data.table::set(keep_Genus, j = "COF", value = paste(keep_Genus[["Class"]], keep_Genus[["Order"]], keep_Genus[["Family"]]))
+  data.table::set(taxon_count, j = "COF", value = paste(taxon_count[["Class"]], taxon_count[["Order"]], taxon_count[["Family"]]))
+  taxon_count <- subset(taxon_count, !(taxon_count[["COF"]] %in% keep_Genus[["COF"]]))
+
+  keep_Family <- subset(taxon_count, taxon_count[["Family"]] != "00")
+  data.table::set(keep_Genus,  j = "CO", value = paste(keep_Genus[["Class"]], keep_Genus[["Order"]]))
+  data.table::set(keep_Family, j = "CO", value = paste(keep_Family[["Class"]], keep_Family[["Order"]]))
+  data.table::set(taxon_count, j = "CO", value = paste(taxon_count[["Class"]], taxon_count[["Order"]]))
+  taxon_count <- subset(taxon_count, !(taxon_count[["CO"]] %in% keep_Genus[["CO"]]))
+  taxon_count <- subset(taxon_count, !(taxon_count[["CO"]] %in% keep_Family[["CO"]]))
+
+  keep_Order <- subset(taxon_count, taxon_count[["Order"]] != "00")
+  data.table::set(keep_Order,  j = "C", value = paste(keep_Order[["Class"]]))
+  data.table::set(keep_Genus,  j = "C", value = paste(keep_Genus[["Class"]]))
+  data.table::set(keep_Family, j = "C", value = paste(keep_Family[["Class"]]))
+  data.table::set(taxon_count, j = "C", value = paste(taxon_count[["Class"]]))
+  taxon_count <- subset(taxon_count, !(taxon_count[["C"]] %in% keep_Order[["C"]]))
+  taxon_count <- subset(taxon_count, !(taxon_count[["C"]] %in% keep_Genus[["C"]]))
+  taxon_count <- subset(taxon_count, !(taxon_count[["C"]] %in% keep_Family[["C"]]))
+
+  rtn <- data.table::rbindlist(list(taxon_count, keep_Genus, keep_Family, keep_Order))
+  data.table::set(rtn, j = "C", value = NULL)
+  data.table::set(rtn, j = "CO", value = NULL)
+  data.table::set(rtn, j = "COF", value = NULL)
+  data.table::setkeyv(rtn, "taxon")
+  rtn
 }
 

@@ -42,23 +42,6 @@ relaxes that requirement by using the \code{\link[dplyr]{arrange}} call.
 
 occurrences(CN_06_Mall_wID[, -1], n = 6)
 
-# Compare results to the raw data were the occurrences of the
-
-library(magrittr)
-
-CN_06_Mall_wID \%>\%
-  dplyr::select(-StationID) \%>\%
-  tidyr::gather(key = 'taxon', value = 'count') \%>\%
-  dplyr::mutate(Class = stringr::str_sub(.data$taxon, 1, 2),
-                Order = stringr::str_sub(.data$taxon, 3, 4),
-                Family = stringr::str_sub(.data$taxon, 5, 6),
-                Genus  = stringr::str_sub(.data$taxon, 7, 8)) \%>\%
-  dplyr::group_by(.data$Class, .data$Order, .data$Family, .data$Genus) \%>\%
-  dplyr::summarize(taxon = unique(.data$taxon), count = sum(.data$count > 0)) \%>\%
-  dplyr::ungroup() \%>\%
-  dplyr::arrange(.data$Class, .data$Order, .data$Family, .data$Genus)
-
-
 }
 \seealso{
 \code{vignette(topic = "pTITAN2", package = "pTITAN2")}

@@ -16,16 +16,15 @@ RoxygenNote: 7.1.1.9001
 Depends: R (>= 3.5.0)
 Imports:
   data.table,
-  dplyr (>= 0.7.0),
-  magrittr,
-  rlang,
-  stringr,
-  tidyr
+  stringr
 Suggests:
-    knitr,
-    readr,
-    rmarkdown,
-    TITAN2,
-    testthat (>= 3.0.0)
+  dplyr,
+  knitr,
+  magrittr,
+  readr,
+  rmarkdown,
+  TITAN2,
+  testthat (>= 3.0.0),
+  tidyr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
