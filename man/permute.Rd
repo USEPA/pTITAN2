@@ -15,7 +15,8 @@ permute2(..., minTaxonFreq = 3L, trys = 100L)
 \item{envs}{a list of data.frames with the environmental gradients. See
 Details}
 
-\item{sid}{a plan text name of the station id columns.}
+\item{sid}{a character vector of length one with the name of the column
+identifying the station id.}
 
 \item{...}{passed to permute}
 

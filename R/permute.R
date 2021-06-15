@@ -18,7 +18,8 @@
 #' @param taxa a list of data.frames with the taxa.  See Details.
 #' @param envs a list of data.frames with the environmental gradients. See
 #' Details
-#' @param sid a plan text name of the station id columns.
+#' @param sid a character vector of length one with the name of the column
+#' identifying the station id.
 #' 
 #' @return
 #' A list of lists of lists.  At the top level the elements are the treatment
@@ -45,18 +46,15 @@ permute <- function(taxa, envs, sid) {
   # build a single data.frame with the station ID and treatment labels. Check
   # that the same station and treatment combinations are present in both the
   # taxa and environmental gradients.
-  sid_enq <- dplyr::enquo(sid)
-  TAXA <-
-    dplyr::bind_rows(taxa, .id = "..treatment..") %>%
-    dplyr::mutate(..sid.. = !!sid_enq,
-                  ..rowid.. = paste(.data$..sid.., .data$..treatment.., sep = "_")) %>%
-    dplyr::mutate_at(.vars = dplyr::vars(-.data$..sid.., -.data$..rowid.., -.data$..treatment..),
-                     .funs = list(~if_else(is.na(.), 0, .)))
-
-  ENVG <-
-    dplyr::bind_rows(envs, .id = "..treatment..") %>%
-    dplyr::mutate(..sid.. = !!sid_enq,
-                  ..rowid.. = paste(.data$..sid.., .data$..treatment.., sep = "_"))
+  TAXA <- data.table::rbindlist(taxa, idcol = "..treatment..", use.names = TRUE, fill = TRUE)
+  ENVG <- data.table::rbindlist(envs, idcol = "..treatment..", use.names = TRUE, fill = TRUE)
+  
+  # replace all NA values with a 0
+  for(j in names(TAXA)[!(names(TAXA) %in% c("..treatment..", sid))]) {
+    data.table::set(TAXA, j = j, value = data.table::nafill(TAXA[[j]], type = "const", fill = 0))
+  }
+  data.table::set(TAXA, j = "..rowid..", value = paste(TAXA[[sid]], TAXA[["..treatment.."]], sep = "_"))
+  data.table::set(ENVG, j = "..rowid..", value = paste(ENVG[[sid]], ENVG[["..treatment.."]], sep = "_"))
   
   # Generate a unique identifier for each station/treatment combination.  Only
   # need to work with the TAXA data.frame for this. The ENVG was generated only
@@ -64,48 +62,42 @@ permute <- function(taxa, envs, sid) {
   # station id.  The final line of this code block splits the data.frame into a
   # list of data.frames where each element of the list contains a data.frame
   # with station ids which occur only once, twice, thrice, ...
-  PERMS <-
-    ENVG %>%
-    dplyr::group_by(.data$..sid..) %>%
-    dplyr::mutate(n = n()) %>%
-    dplyr::ungroup() %>%
-    split(x = ., f = .$n)
+  PERMS <- data.table::copy(ENVG)
+  for (j in unique(PERMS[[sid]])) {
+    idx <- which(PERMS[[sid]] == j)
+    data.table::set(PERMS, i = idx, j = "n", value = length(idx))
+  }
 
   # generate the permuted treatment levels.  A vector of treatment labels will be needed.
   trtlabs <- as.character(seq(1, length(taxa), by = 1))
-  PERMS <-
-    PERMS %>%
-    lapply(.,
-           function(x) {
-             if (all(x$n == 1)) {# if the station id occurs only once permute the treatment labels for the data.frame
-               dplyr::mutate(x, thistrt = sample(.data$..treatment..))
-             } else { # station occurs more than once, sample from the possible treatment labels
-               x %>%
-                 dplyr::group_by(.data$..sid..) %>%
-                 dplyr::mutate(thistrt = sample(trtlabs, size = unique(.data$n))) %>%
-                 dplyr::ungroup()
-             }
-           }) %>%
-    dplyr::bind_rows(.) %>%
-    dplyr::arrange(.data$..rowid..) 
+
+  for (i in seq_along(trtlabs)) {
+    idx <- which(PERMS$n == i)
+    data.table::set(PERMS, i = idx, j = "..thistrt..", value = sample(PERMS[["..treatment.."]][idx]))
+  }
 
   # Split by the permuted treatment labels
-  PERMS <- split(PERMS$..rowid.., PERMS$thistrt)
+  PERMS <- split(PERMS[["..rowid.."]], PERMS[["..thistrt.."]])
 
   # generate the needed environmental gradient and tax data frames
-  outE <- lapply(PERMS,
-                 function(xx) {
-                   ENVG %>%
-                     dplyr::filter(.data$..rowid.. %in% xx) %>%
-                     dplyr::arrange(!!sid_enq) %>%
-                     dplyr::select(-!!sid_enq, -dplyr::starts_with(".."))
+  outE <- lapply(PERMS, function(p) { subset(ENVG, ENVG[["..rowid.."]] %in% p) })
+  outE <- lapply(outE, data.table::setkeyv, cols = sid)
+  outE <- lapply(outE,
+                 function(x) {
+                   for (j in c(sid, grep("^\\.\\.", names(x), value = TRUE))){
+                     data.table::set(x, j = j, value = NULL)
+                   }
+                   x
                  })
-  outT <- lapply(PERMS,
-                 function(xx) {
-                   TAXA %>%
-                     dplyr::filter(.data$..rowid.. %in% xx) %>%
-                     dplyr::arrange(!!sid_enq) %>%
-                     dplyr::select(-!!sid_enq, -dplyr::starts_with(".."))
+
+  outT <- lapply(PERMS, function(p) { subset(TAXA, TAXA[["..rowid.."]] %in% p) })
+  outT <- lapply(outT, data.table::setkeyv, cols = sid)
+  outT <- lapply(outT,
+                 function(x) {
+                   for (j in c(sid, grep("^\\.\\.", names(x), value = TRUE))){
+                     data.table::set(x, j = j, value = NULL)
+                   }
+                   x
                  })
 
   rtn <-

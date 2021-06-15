@@ -36,7 +36,7 @@ $(PKG_NAME)_$(PKG_VERSION).tar.gz: .install_dev_deps.Rout .document.Rout $(VIGNE
 	@touch $@
 
 $(PKG_ROOT)/data/%.rda : inst/extdata/%.csv
-	Rscript --vanilla -e "$(basename $(notdir $<)) <- read.csv('$<', colClasses = c(StationID = 'character'))"\
+	Rscript --vanilla -e "$(basename $(notdir $<)) <- read.csv('$<', colClasses = c(StationID = 'character'))"
 		-e "save($(basename $(notdir $<)), file = '$@')"
 
 $(PKG_ROOT)/data/permutation_example.rda : inst/example-scripts/permutation_example.R

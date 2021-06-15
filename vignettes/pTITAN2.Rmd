@@ -173,7 +173,7 @@ a family with three genuses each only had two occurrences, the family level woul
 This is the approach that is used in the occurrences function where the `n` is the
 minimum number of occurrences that are required for the TITAN runs.
 
-Example:
+**Example:**
 The `CN_06_Mall.csv` (Chaparral Region, Treatment = Normal) file contains raw
 macroinvertebrate density data for 500 possible macroinvertebrate codes for
 each taxonomic level (class, order, family, genus). The `occurrences`
@@ -186,18 +186,25 @@ would not be used in the `TITAN2::titan` run.
 
 
 ```{r }
-CN_06_Mall <-
-  readr::read_csv(file = system.file("extdata", "CN_06_Mall_wID.csv",
-                                     package = "pTITAN2"),
-                  col_types = readr::cols(.default = readr::col_double()))
-CD_06_Mall <-
-  readr::read_csv(file = system.file("extdata", "CD_06_Mall_wID.csv",
-                                     package = "pTITAN2"),
-                  col_types = readr::cols(.default = readr::col_double()))
-
-str(CN_06_Mall)
+CN_06_Mall_from_raw <-
+  read.csv(file = system.file("extdata", "CN_06_Mall_wID.csv", package = "pTITAN2"),
+           colClasses = c(StationID = "character"))
+CD_06_Mall_from_raw <-
+  read.csv(file = system.file("extdata", "CD_06_Mall_wID.csv", package = "pTITAN2"),
+           colClasses = c(StationID = "character"))
 ```
 
+You need not read the data from the raw files, the data sets have been provided
+as ready to use data sets.
+
+```{r}
+data(CN_06_Mall_wID, CD_06_Mall_wID, package = "pTITAN2")
+all.equal(CN_06_Mall_wID, CN_06_Mall_from_raw)
+all.equal(CD_06_Mall_wID, CD_06_Mall_from_raw)
+
+dim(CD_06_Mall_wID)
+CD_06_Mall_wID[1:3, 1:6]
+```
 
 The names within the data set are expected to have the following structure:
 
@@ -226,9 +233,10 @@ provided and split into its component parts, and the counts.
 
 
 ```{r }
-CN_06_Mall %>%
+CN_06_Mall_wID %>%
   dplyr::select(-StationID) %>%
-  occurrences(., n = 6L) %>% head()
+  occurrences(., n = 6L) %>%
+  head()
 ```
 
 
@@ -236,7 +244,7 @@ Compare these results to the (present) counts from the raw data:
 
 
 ```{r }
-CN_06_Mall %>%
+CN_06_Mall_wID %>%
   dplyr::select(-StationID) %>%
   tidyr::gather(key = 'taxon', value = 'count') %>%
   dplyr::mutate(Class = stringr::str_sub(.data$taxon, 1, 2),
@@ -248,7 +256,6 @@ CN_06_Mall %>%
   dplyr::ungroup() %>%
   # dplyr::filter(count >= 6L) %>%
   dplyr::arrange(.data$Class, .data$Order, .data$Family, .data$Genus) %>% head(n=10)
-
 ```
 
 
@@ -268,18 +275,18 @@ by selecting the columns for the taxon returned by `occurrences`
 
 ```{r }
 chaparral_taxon_normal <-
-  dplyr::select(CN_06_Mall, StationID,
-                occurrences(dplyr::select(CN_06_Mall, -StationID), n = 6L)$taxon)
+  dplyr::select(CN_06_Mall_wID, StationID,
+                occurrences(dplyr::select(CN_06_Mall_wID, -StationID), n = 6L)$taxon)
 chaparral_taxon_dry <-
-  dplyr::select(CD_06_Mall, StationID,
-                occurrences(dplyr::select(CD_06_Mall, -StationID), n = 6L)$taxon)
+  dplyr::select(CD_06_Mall_wID, StationID,
+                occurrences(dplyr::select(CD_06_Mall_wID, -StationID), n = 6L)$taxon)
 
 chaparral_taxon_normal
 ```
 
 
-
 # Permuting of Treatment Labels
+
 The second new function in the pTITAN2 is the permute function. This is the function
 that is used to permute the data across treatment labels such
 that each station has a non-zero probability of being assigned to each
@@ -313,23 +320,23 @@ Before we can run `permute`, we need to import the environmental gradients
 data.
 
 ```{r }
-chaparral_envgrad_normal <-
-  readr::read_csv(system.file("extdata", "C_IC_N_06_wID.csv", package = "pTITAN2"),
-                  col_types = readr::cols(.default = readr::col_double()))
-chaparral_envgrad_dry <-
-  readr::read_csv(system.file("extdata", "C_IC_D_06_wID.csv", package = "pTITAN2"),
-                  col_types = readr::cols(.default = readr::col_double()))
+data(C_IC_N_06_wID, C_IC_D_06_wID, package = "pTITAN2")
+chaparral_envgrad_normal <- C_IC_N_06_wID
+chaparral_envgrad_dry    <- C_IC_D_06_wID
+str(chaparral_envgrad_normal)
+str(chaparral_envgrad_dry)
 ```
-
-
 
 
 ```{r }
-eg <- permute(taxa = list(chaparral_taxon_dry, chaparral_taxon_normal),
-              envs = list(chaparral_envgrad_dry, chaparral_envgrad_normal),
-              sid = StationID)
+eg <- permute(
+              taxa = list(chaparral_taxon_dry, chaparral_taxon_normal)
+              ,
+              envs = list(chaparral_envgrad_dry, chaparral_envgrad_normal)
+              ,
+              sid = "StationID"
+              )
 ```
-
 
 The result of the `permute` call is a list of lists.
 
@@ -337,8 +344,8 @@ The result of the `permute` call is a list of lists.
 str(eg, max.level = 1L)
 ```
 
-The first level denotes the treatment  In this example `treatment1` is
-the "dry" condition and the `treatment2` is the "normal" condition, the order
+The first level denotes the treatment  In this example `Treatment1` is
+the "dry" condition and the `Treatment2` is the "normal" condition, the order
 of the inputs.
 
 The second level are the data.frames for the treatment, the environmental
