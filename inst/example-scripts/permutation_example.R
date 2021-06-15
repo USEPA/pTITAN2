@@ -5,7 +5,7 @@ load("./data/C_IC_N_06_wID.rda")
 load("./data/CD_06_Mall_wID.rda")
 load("./data/CN_06_Mall_wID.rda")
 source("./R/permute.R")
-source("./R/occurances.R")
+source("./R/occurrences.R")
 
 permutation_example <-
   replicate(10,
