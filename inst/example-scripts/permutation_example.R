@@ -1,11 +1,9 @@
 # Re-import the data.
 CN_06_Mall <-
-  readr::read_csv(file = system.file("extdata", "CN_06_Mall_wID.csv",
-                                     package = "pTITAN2"),
+  readr::read_csv(file = system.file("extdata", "CN_06_Mall_wID.csv", package = "pTITAN2"),
                   col_types = readr::cols(.default = readr::col_double()))
 CD_06_Mall <-
-  readr::read_csv(file = system.file("extdata", "CD_06_Mall_wID.csv",
-                                     package = "pTITAN2"),
+  readr::read_csv(file = system.file("extdata", "CD_06_Mall_wID.csv", package = "pTITAN2"),
                   col_types = readr::cols(.default = readr::col_double()))
 
 chaparral_envgrad_normal <-
@@ -16,7 +14,7 @@ chaparral_envgrad_dry <-
                   col_types = readr::cols(.default = readr::col_double()))
 
 
-# set up the cluster
+# set up the cluster (this works on Unix like systems)
 library(parallel)
 cl <- parallel::makeCluster(2, setup_strategy = "sequential")
 clusterEvalQ(cl, {require(pTITAN2); require(TITAN2); require(dplyr) })
@@ -70,8 +68,8 @@ foo <- function(x) {
 
 
 # run four permutations.
-out <- parLapply(cl, 1:4, foo) #Change the number of permutations here
+permutation_example <- parLapply(cl, 1:4, foo) #Change the number of permutations here
 
-dplyr::bind_rows(out, .id = "permutation")
+permutation_example <- dplyr::bind_rows(permutation_example, .id = "permutation")
 
 stopCluster(cl)

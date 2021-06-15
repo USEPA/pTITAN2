@@ -40,3 +40,15 @@ NULL
 
 #' @rdname datasets
 "CN_06_Mall_wID"
+
+#' Permutation Example Result
+#'
+#' Results for a permutation example.
+#'
+#' The code to generate this example permuation set can be found via
+#' \code{system.file("example-scripts", "permutation_example.R", package = "pTITAN2")}
+#'
+#' @seealso \code{vignette("pTITIAN2")}
+#' 
+#' @rdname permutation_example
+"permutation_example"

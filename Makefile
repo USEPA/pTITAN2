@@ -30,13 +30,17 @@ $(PKG_NAME)_$(PKG_VERSION).tar.gz: .install_dev_deps.Rout .document.Rout $(VIGNE
 		-e "devtools::install_dev_deps()"
 	@touch $@
 
-.document.Rout: $(SRC) $(RFILES) $(DATATARGETS) $(EXAMPLES) $(PKG_ROOT)/DESCRIPTION
+.document.Rout: $(SRC) $(RFILES) $(DATA) $(PKG_ROOT)/data/permutation_example.rda $(EXAMPLES) $(PKG_ROOT)/DESCRIPTION
 	Rscript --vanilla --quiet -e "options(warn = 2)" \
 		-e "devtools::document('$(PKG_ROOT)')"
 	@touch $@
 
 $(PKG_ROOT)/data/%.rda : inst/extdata/%.csv
 	Rscript --vanilla -e "$(basename $(notdir $<)) <- read.csv('$<', colClasses = c(StationID = 'character'))"\
+		-e "save($(basename $(notdir $<)), file = '$@')"
+
+$(PKG_ROOT)/data/permutation_example.rda : inst/example-scripts/permutation_example.R
+	Rscript --vanilla -e "source('$<')"\
 		-e "save($(basename $(notdir $<)), file = '$@')"
 
 check: $(PKG_NAME)_$(PKG_VERSION).tar.gz

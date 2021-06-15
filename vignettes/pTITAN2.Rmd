@@ -313,7 +313,7 @@ Before we can run `permute`, we need to import the environmental gradients
 data.
 
 ```{r }
-c All other name spaces are used explicitly.haparral_envgrad_normal <-
+chaparral_envgrad_normal <-
   readr::read_csv(system.file("extdata", "C_IC_N_06_wID.csv", package = "pTITAN2"),
                   col_types = readr::cols(.default = readr::col_double()))
 chaparral_envgrad_dry <-
@@ -354,26 +354,29 @@ str(eg, max.level = 2L)
 The most computationally expensive part of this work is calling
 `TITAN2::titan` many, many times. A good option is to use the parallel
 package to send the task of permuting the data and running `TITAN2::titan()`
-to individual processing cores.  Parallel computing is platform specific.  An
-example script for how to run `TITAN2::titan` as a parallel process can be found
-in the provided example script:
+to individual processing cores.
+
+**Example:**
+Inputting data for TITAN, permuting the
+data across treatments, using occurrences to select the data for the TITAN run,
+and then running TITAN on the permuted and selected data.  The code for this
+work is provided in a standalone script
 
 ```{r}
-# file.open(system.file())
+system.file("example-scripts", "permutation_example.R", package = "pTITAN2")
+list.files(system.file("extdata", package = "pTITAN2"))
 ```
 
+The output from this code is provided as a dataset in this package.
+```{r }
+permutation_example
+```
 
-Example:
-The below code chunk provides an example of inputting data for TITAN, permuting the
-data across treatments, using occurrences to select the data for the TITAN run,
-and then running TITAN on the permuted and selected data. The output from this code chunk
-are the increasing and decreasing taxa sumz values. In this example only four permutations are
+The results are the increasing and decreasing taxa sumz values. In this example only four permutations are
 used and TITAN bootstrapping is limited to five iterations. In an actual analysis these values should
 be much higher. This process is very computationally intensive and can take hours or days to run
 depending on the available computing power and the number of bootstraps and permutations used.
 
-```{r }
-```
 
 
 
@@ -413,7 +416,7 @@ CN_obs  <- TITAN2::titan(
   numPerm = 50,
   nBoot = 50)
 
-#create a table of the median change point from TITAN for calculating the p-values
+# create a table of the median change point from TITAN for calculating the p-values
 TITAN_med <-  rbind(as.data.frame(CD_obs$sumz),
                     as.data.frame(CN_obs$sumz)) %>%
   cbind(run = c(rep("Tr1_CD", 4),
@@ -426,8 +429,8 @@ TITAN_med <-  rbind(as.data.frame(CD_obs$sumz),
     T1T2_abs = abs(Tr1_CD - Tr2_CN)
   )
 
-#Create a summary table of the permutation data
-perm <- dplyr::bind_rows(out, .id = "permutation") #out is the permuated data
+# Create a summary table of the permutation data
+perm <- dplyr::bind_rows(permutation_example, .id = "permutation") #permutation_example is the permuated data
 
 tr1_filt <-
   dplyr::select(perm, permutation, `trt1cpsumz-`,	`trt1cpsumz+`) %>%
@@ -439,7 +442,7 @@ tr1_filt[which(tr1_filt$sumz == "trt1cpsumz-"), 2] <- "fsumz-"
 tr1_filt[which(tr1_filt$sumz == "trt1cpsumz+"), 2] <- "fsumz+"
 
 tr2_filt <-
-  dplyr::select(perm, permutation, `trt2cpsumz-`,	`trt2cpsumz+`) %>% #out is the permuated data
+  dplyr::select(perm, permutation, `trt2cpsumz-`,	`trt2cpsumz+`) %>%
   tidyr::pivot_longer(cols = `trt2cpsumz-`:`trt2cpsumz+`,
                values_to = "Tr2_CN",
                names_to = "sumz")
@@ -447,13 +450,13 @@ tr2_filt[which(tr2_filt$sumz == "trt2cpsumz-"), 2] <- "fsumz-"
 tr2_filt[which(tr2_filt$sumz == "trt2cpsumz+"), 2] <- "fsumz+"
 
 
-#mutate the data and create a summary table for calculating p-values
+# mutate the data and create a summary table for calculating p-values
 out_perm <- left_join(tr1_filt, tr2_filt) %>%
   mutate(
     T1T2_abs = abs(Tr1_CD - Tr2_CN)
   ) %>% select(-permutation)
 
-#Calulate the p-values
+# Calulate the p-values
 tibble(treatment = "T1T2_CDCN",
                   "fsumz-" = (sum((
   filter(out_perm, sumz == "fsumz-")$T1T2_abs >
