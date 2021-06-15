@@ -121,16 +121,12 @@ the Palmer Drought Severity Index, which serve as the treatments in this
 example.
 
 To reproduce the examples in this vignette you will need to load and attach
-the `pTITAN2` namespace and the `magrittr` namespace for the piping
-operators.  `dplyr` is useful as several of the methods in pTITAN2 are based on
-`dplyr` functions.
+the `pTITAN2`.
 
 ```{r }
-set.seed(42)
 library(pTITAN2)
-library(magrittr)
-library(dplyr)
 ```
+
 # Example data
 
 This vignette provides examples for using the pTITAN2 tools in
@@ -156,24 +152,6 @@ File                 Data Type              Region       Treatment
 `CN_06_Mall_wID.csv` Taxonomic              Chaparral    Normal
 
 
-# Selecting macroinvertebrate density data for TITAN
-
-A new function in pTITAN2 is the occurrences function. This is an extension for
-deciding the taxonomic detail to be included in a TITAN run based on `minSplt` in TITAN.
-`minSplt` is minimum number of occurrences that TITAN is looking for
-taxa to have across the provided sites. The `minSplt` default in TITAN is 5 and should never drop below 3.
-
-There are two approaches for deciding the level of taxonomic detail to include in a
-TITAN run. First, the analyst could decide to look at everything at a certain taxonomic level,
-for example genus. In this approach every genus that did not have the minimum number of
-occurrences would not be included. The second approach would be using the lowest taxonomic
-detail on a case-by-case bias. This means retaining the lowest detail that meets the minimum number of
-occurrences. In this approach if a genus had, for example, 5 occurrences it would be used. However, if
-a family with three genuses each only had two occurrences, the family level would be used instead.
-This is the approach that is used in the occurrences function where the `n` is the
-minimum number of occurrences that are required for the TITAN runs.
-
-**Example:**
 The `CN_06_Mall.csv` (Chaparral Region, Treatment = Normal) file contains raw
 macroinvertebrate density data for 500 possible macroinvertebrate codes for
 each taxonomic level (class, order, family, genus). The `occurrences`
@@ -198,7 +176,7 @@ You need not read the data from the raw files, the data sets have been provided
 as ready to use data sets.
 
 ```{r}
-data(CN_06_Mall_wID, CD_06_Mall_wID, package = "pTITAN2")
+data(CN_06_Mall_wID, CD_06_Mall_wID, C_IC_D_06_wID, C_IC_N_06_wID, package = "pTITAN2")
 all.equal(CN_06_Mall_wID, CN_06_Mall_from_raw)
 all.equal(CD_06_Mall_wID, CD_06_Mall_from_raw)
 
@@ -219,6 +197,29 @@ example: A code that is 'Bi000000' is the Bivalvia class, while BiVe0000 is
 the Bivalvia class, Veneroida order. BiVeSh00 is the Bivalvia class,
 Veneroida order, Spheriridae family. BiVeSh01 is a genus within that family.
 
+The environmental gradient files have the following structure.
+```{r}
+str(C_IC_N_06_wID)
+str(C_IC_D_06_wID)
+```
+
+# Selecting macroinvertebrate density data for TITAN
+
+A new function in pTITAN2 is the occurrences function. This is an extension for
+deciding the taxonomic detail to be included in a TITAN run based on `minSplt` in TITAN.
+`minSplt` is minimum number of occurrences that TITAN is looking for
+taxa to have across the provided sites. The `minSplt` default in TITAN is 5 and should never drop below 3.
+
+There are two approaches for deciding the level of taxonomic detail to include in a
+TITAN run. First, the analyst could decide to look at everything at a certain taxonomic level,
+for example genus. In this approach every genus that did not have the minimum number of
+occurrences would not be included. The second approach would be using the lowest taxonomic
+detail on a case-by-case bias. This means retaining the lowest detail that meets the minimum number of
+occurrences. In this approach if a genus had, for example, 5 occurrences it would be used. However, if
+a family with three genuses each only had two occurrences, the family level would be used instead.
+This is the approach that is used in the occurrences function where the `n` is the
+minimum number of occurrences that are required for the TITAN runs.
+
 To have a sufficient number of observations for each code in the
 `TITAN::titan()` runs we will only use those with at least `n` observations.
 The code to use should be as granular as possible.
@@ -235,24 +236,6 @@ provided and split into its component parts, and the counts.
 ```{r }
 occurrences(CN_06_Mall_wID[, -1], n = 6L)
 ```
-
-Compare these results to the (present) counts from the raw data:
-
-```{r }
-CN_06_Mall_wID %>%
-  dplyr::select(-StationID) %>%
-  tidyr::gather(key = 'taxon', value = 'count') %>%
-  dplyr::mutate(Class = stringr::str_sub(.data$taxon, 1, 2),
-                Order = stringr::str_sub(.data$taxon, 3, 4),
-                Family = stringr::str_sub(.data$taxon, 5, 6),
-                Genus  = stringr::str_sub(.data$taxon, 7, 8)) %>%
-  dplyr::group_by(.data$Class, .data$Order, .data$Family, .data$Genus) %>%
-  dplyr::summarize(taxon = unique(.data$taxon), count = sum(.data$count > 0)) %>%
-  dplyr::ungroup() %>%
-  dplyr::filter(count >= 6L) %>%
-  dplyr::arrange(.data$Class, .data$Order, .data$Family, .data$Genus) %>% head(n=10)
-```
-
 
 Note that for `Class == "Ar"` there is only one row, with no `Order`, `Family`,
 or `Genus` level information. That row is retained in the object returned from
@@ -380,9 +363,7 @@ depending on the available computing power and the number of bootstraps and perm
 If you have three or more treatments and need to permute over them with the
 condition that no station will be in the same treatment more than once on any
 particular permutation and that all treatment labels are viable for each
-station then you can still use the `permute` function. The foo function (above)
-will need to be adjusted to include the additional treatments.
-
+station then you can still use the `permute` function.
 
 # Analyzing the results
 The output from the above code chunk can then be used to compare the differences in change-point
@@ -390,7 +371,7 @@ values for treatments from the observed samples versus the permuted samples. A p
 run on these data to test for statistically significant differences between the treatment effects.
 
 ```{r}
-#Run TITAN on the observed data
+# Run TITAN on the observed data
 CD_obs <- TITAN2::titan(
   env  = dplyr::select(chaparral_envgrad_dry, ImpCover),
              txa  = dplyr::select(chaparral_taxon_dry,
