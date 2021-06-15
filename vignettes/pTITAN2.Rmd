@@ -356,7 +356,39 @@ str(eg, max.level = 2L)
 The most computationally expensive part of this work is calling
 `TITAN2::titan` many, many times. A good option is to use the parallel
 package to send the task of permuting the data and running `TITAN2::titan()`
-to individual processing cores.
+to individual processing cores.  For the following example we will create a list
+of inputs for four permutations of the data and then call `TITAN2::titan()`.
+
+```{r}
+permutations <- 
+  replicate(4,
+            {
+              p <- permute(taxa = list(CD_06_Mall_wID, CN_06_Mall_wID),
+                           envs = list(C_IC_D_06_wID, C_IC_N_06_wID),
+                           sid = "StationID")
+              trt_codes_1 <- occurrences(p$Treatment1$taxa, n = 6L)$taxon
+              trt_codes_2 <- occurrences(p$Treatment2$taxa, n = 6L)$taxon
+
+              out1 <- try(
+                          TITAN2::titan(env  = p[["Treatment1"]][["env"]][[1]],
+                                        txa  = trt_codes_1,
+                                        boot = TRUE,
+                                        nBoot = 5)
+                          , #Change the number of bootstraps here
+                          silent = TRUE)
+              out2 <- try(TITAN2::titan(env  = p[["Treatment2"]][["env"]][[1]],
+                                        txa  = trt_codes_2,
+                                        boot = TRUE,
+                                        nBoot = 5),
+                          silent = TRUE)
+              
+            },
+            simplify = FALSE)
+permutations
+```
+
+
+
 
 **Example:**
 Inputting data for TITAN, permuting the
@@ -366,7 +398,7 @@ work is provided in a standalone script
 
 ```{r}
 system.file("example-scripts", "permutation_example.R", package = "pTITAN2")
-list.files(system.file("extdata", package = "pTITAN2"))
+list.files(system.file("example-scripts", package = "pTITAN2"))
 ```
 
 The output from this code is provided as a dataset in this package.
