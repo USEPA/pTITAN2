@@ -5,7 +5,7 @@
 \alias{permutation_example}
 \title{Permutation Example Result}
 \format{
-An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 4 rows and 7 columns.
+An object of class \code{data.frame} with 10 rows and 7 columns.
 }
 \usage{
 permutation_example

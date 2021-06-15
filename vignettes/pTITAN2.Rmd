@@ -356,66 +356,16 @@ str(eg, max.level = 2L)
 The most computationally expensive part of this work is calling
 `TITAN2::titan` many, many times. A good option is to use the parallel
 package to send the task of permuting the data and running `TITAN2::titan()`
-to individual processing cores.  For the following example we will create a list
-of inputs for four permutations of the data and then call `TITAN2::titan()`.
-
-```{r}
-set.seed(42)
-permutations <- 
-  replicate(4,
-            {
-              p <- permute(taxa = list(CD_06_Mall_wID, CN_06_Mall_wID),
-                           envs = list(C_IC_D_06_wID, C_IC_N_06_wID),
-                           sid = "StationID")
-              trt_codes_1 <- subset(p$Treatment1$taxa, select = occurrences(p$Treatment1$taxa, n = 6L)$taxon)
-              trt_codes_2 <- subset(p$Treatment2$taxa, select = occurrences(p$Treatment1$taxa, n = 6L)$taxon)
-
-              out1 <- try(
-                          TITAN2::titan(env  = p[["Treatment1"]][["env"]][[1]],
-                                        txa  = trt_codes_1,
-                                        boot = TRUE,
-                                        nBoot = 5) #Change the number of bootstraps here
-                          , silent = TRUE)
-
-              out2 <- try(
-                          TITAN2::titan(env  = p[["Treatment2"]][["env"]][[1]],
-                                        txa  = trt_codes_2,
-                                        boot = TRUE,
-                                        nBoot = 5)
-                          , silent = TRUE)
-              
-              if ("try-error" %in% c(class(out1), class(out2))) {
-                rtn <- NULL
-              } else {
-                rtn <- data.frame("trt1cpsumz-" = out1$sumz.cp[1, 4], #decreasing taxa output
-                                  "trt1cpsumz+" = out1$sumz.cp[2, 4], #increasing taxa output
-                                  "trt1count" = (nrow(out1$env)), #Number of permuted sites in treatment #1 
-                                  "trt2cpsumz-" = out2$sumz.cp[1, 4],
-                                  "trt2cpsumz+" = out2$sumz.cp[2, 4],
-                                  "trt2count" = (nrow(out2$env)))
-              }
-              rtn
-            },
-            simplify = FALSE)
-permutations
-```
-
-
-
-
-**Example:**
-Inputting data for TITAN, permuting the
-data across treatments, using occurrences to select the data for the TITAN run,
-and then running TITAN on the permuted and selected data.  The code for this
-work is provided in a standalone script
-
-```{r}
-system.file("example-scripts", "permutation_example.R", package = "pTITAN2")
-list.files(system.file("example-scripts", package = "pTITAN2"))
-```
-
-The output from this code is provided as a dataset in this package.
+to individual processing cores.  That is system dependent and left to the end
+user to impliment.  For an example of generating the permutations with `TITAN2::titan()` 
+see the example script provided at:
 ```{r }
+system.file("example-scripts/permutation_example.R", package = "pTITAN2")
+```
+That file will generate the provided data set `permutation_example` with 10 rows
+from 10 permutations of the example data set.
+
+```{r}
 permutation_example
 ```
 
@@ -423,8 +373,6 @@ The results are the increasing and decreasing taxa sumz values. In this example 
 used and TITAN bootstrapping is limited to five iterations. In an actual analysis these values should
 be much higher. This process is very computationally intensive and can take hours or days to run
 depending on the available computing power and the number of bootstraps and permutations used.
-
-
 
 
 # Permuting Three or more Treatments
