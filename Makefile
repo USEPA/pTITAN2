@@ -39,7 +39,7 @@ $(PKG_ROOT)/data/%.rda : inst/extdata/%.csv
 	Rscript --vanilla -e "$(basename $(notdir $<)) <- read.csv('$<', colClasses = c(StationID = 'character'))"
 		-e "save($(basename $(notdir $<)), file = '$@')"
 
-$(PKG_ROOT)/data/permutation_example.rda : inst/example-scripts/permutation_example.R $(DATA) $(PKG_ROOT)/R/permute.R $(PKG_ROOT)/R/occurances.R
+$(PKG_ROOT)/data/permutation_example.rda : inst/example-scripts/permutation_example.R $(DATA) $(PKG_ROOT)/R/permute.R $(PKG_ROOT)/R/occurrences.R
 	Rscript --vanilla -e "source('$<')"\
 		-e "save($(basename $(notdir $<)), file = '$@')"
 
