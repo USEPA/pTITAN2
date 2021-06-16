@@ -19,6 +19,7 @@ vignette: >
 
 ```{r label=setup, include = FALSE}
 library(knitr)
+loadNamespace("data.table")
 knitr::opts_chunk$set(collapse = TRUE)
 ```
 
@@ -173,7 +174,7 @@ environmental gradient (Table \@ref(tab:datasets)).  These data sets are
 provided as raw csv files and as prepared R datasets.
 
 ```{r label = "datasets", echo = FALSE, results = "asis"}
-d <- 
+d <-
   data.table::fread(text = "
 C_IC_D_06_wID|C_IC_D_06_wID.csv|Environmental Gradient|Chaparral|Dry
 C_IC_N_06_wID|C_IC_N_06_wID.csv|Environmental Gradient|Chaparral|Normal
@@ -237,10 +238,6 @@ count has at least six occurrences in a genus code, the family, order, and class
 codes associated with these counts should be removed. Further, if there are too
 few counts at the genus level, but at least six counts at the family level- the
 family code would be retained and the order and class codes would be removed.
-
-```{r }
-occurrences(CN_06_Mall_wID[, -1], n = 6L)
-```
 
 The second new function provided by pTITAN2 is the `permute` function which
 provides a list of permuted sets of taxa and environmental gradients.  This
@@ -354,13 +351,13 @@ that is shown here is not required for pTITAN2 and instead the environmental
 variables and treatments could be in a single data file and subdivided as
 desired. Separate data files are provided for each 'treatment' that is explored
 including data from either drought (dry) or normal precipitation years in the
-Chaparral region of California. 
+Chaparral region of California.
 
 **Function occurrences**
 
 The taxonomic sets, CD_06_Mall_wID and CN_06_Mall_wID, contains raw
 macroinvertebrate density data for 500 possible macroinvertebrate codes for
-each taxonomic level (class, order, family, genus). 
+each taxonomic level (class, order, family, genus).
 ```{r}
 dim(CD_06_Mall_wID)
 
@@ -384,8 +381,11 @@ the data set.
 head(
      occurrences(CD_06_Mall_wID[, -1])
 )
-```
 
+head(
+     occurrences(CN_06_Mall_wID[, -1], n = 6L)
+)
+```
 
 
 
@@ -542,6 +542,9 @@ run on these data to test for statistically significant differences between the 
 ```{r}
 # Run TITAN on the observed data
 # limited to 2 cores for CRAN policies, end users can use more cores
+# the following uses the tidyverse dialect, load and attach the magrittr
+# namespace, use dplyr and tidyr namespaces explicitly.
+library(magrittr)
 
 CD_obs <-
   TITAN2::titan(
