@@ -306,10 +306,15 @@ the provided example data sets and how to use the `occurrences()` and
 `permute()` functions.
 
 To reproduce the examples in this vignette you will need to load and attach
-the pTITAN2 namespace.
+the pTITAN2 and magrittr namespaces.  Other namespaces are used explicitly,
+loaded (not attached) here.
 
 ```{r }
 library(pTITAN2)
+library(magrittr)
+loadNamespace("data.table")
+loadNamespace("dplyr")
+loadNamespace("tidyr")
 ```
 
 ## Example data
@@ -353,7 +358,7 @@ desired. Separate data files are provided for each 'treatment' that is explored
 including data from either drought (dry) or normal precipitation years in the
 Chaparral region of California.
 
-**Function occurrences**
+## Function occurrences
 
 The taxonomic sets, CD_06_Mall_wID and CN_06_Mall_wID, contains raw
 macroinvertebrate density data for 500 possible macroinvertebrate codes for
@@ -376,16 +381,89 @@ would not be used in the `TITAN2::titan` run.
 The data is parsed within the `occurrences` call and returns a data.frame with
 each taxon code split into its components and the frequency of the taxon within
 the data set.
+A new function in pTITAN2 is the occurrences function. This is an extension for
+deciding the taxonomic detail to be included in a TITAN run based on `minSplt`
+in TITAN.  `minSplt` is minimum number of occurrences that TITAN is looking for
+taxa to have across the provided sites. The `minSplt` default in TITAN is 5 and
+should never drop below 3.  The default for `occurrences` is `minSplt` = `n` =
+6.
 
 ```{r label = "occurrences_example"}
-head(
-     occurrences(CD_06_Mall_wID[, -1])
-)
-
 head(
      occurrences(CN_06_Mall_wID[, -1], n = 6L)
 )
 ```
+
+Compare these results to working with the raw data.  We repeat the work twice,
+once using tidyverse syntax and once using data.table syntax.
+```{r}
+# Tidyverse
+CN_06_Mall_wID %>%
+  dplyr::select(-StationID) %>%
+  tidyr::pivot_longer(cols = dplyr::everything(), names_to = 'taxon', values_to = 'count') %>%
+  dplyr::mutate(Class = stringr::str_sub(.data$taxon, 1, 2),
+                Order = stringr::str_sub(.data$taxon, 3, 4),
+                Family = stringr::str_sub(.data$taxon, 5, 6),
+                Genus  = stringr::str_sub(.data$taxon, 7, 8)) %>%
+  dplyr::group_by(.data$Class, .data$Order, .data$Family, .data$Genus) %>%
+  dplyr::summarize(taxon = unique(.data$taxon), count = sum(.data$count > 0)) %>%
+  dplyr::ungroup() %>%
+  # dplyr::filter(count >= 6L) %>%
+  dplyr::arrange(.data$Class, .data$Order, .data$Family, .data$Genus)
+```
+
+```{r}
+# data.table
+taxon_count <- data.table::copy(CN_06_Mall_wID)
+data.table::setDT(taxon_count)
+data.table::set(taxon_count, j = "StationID", value = NULL)
+for(j in as.integer(which(sapply(taxon_count, is.integer)))) {
+  data.table::set(taxon_count, j = j, value = as.numeric(taxon_count[[j]]))
+}
+
+taxon_count <- data.table::melt(taxon_count, variable.factor = FALSE, measure.vars = names(taxon_count), variable.name = "taxon")
+taxon_count[, value := sum(value > 0), keyby = .(taxon)]
+taxon_count <- unique(taxon_count)
+
+data.table::set(taxon_count, j = "Class",  value = substr(taxon_count[["taxon"]], 1L, 2L))
+data.table::set(taxon_count, j = "Order",  value = substr(taxon_count[["taxon"]], 3L, 4L))
+data.table::set(taxon_count, j = "Family", value = substr(taxon_count[["taxon"]], 5L, 6L))
+data.table::set(taxon_count, j = "Genus",  value = substr(taxon_count[["taxon"]], 7L, 8L))
+
+data.table::setkeyv(taxon_count, c("taxon", "Class", "Order", "Family", "Genus"))
+
+taxon_count[grepl("^(Ar|Bi).+", taxon)]
+```
+
+Note that for the Ar class there is only one row with no order, family, or genus
+level information.  Compare to the Bi class where the Un order has no presence
+counts and is thus not reported in object returned from `occurrences`.  BiVeCa01
+has counts and will be reported but BiVeCa00 should not be reported.  BiVe0000
+and Bi000000 should not be reported as `occurrences` as preference for the codes
+with family and genus level information.
+
+## Function permute
+
+The function permute is used to generate a list of permuted sets of taxa and
+environmental gradients. Function parameters include a list of data frames
+containing taxa for each treatment group, a list of data frames containing the
+associated environmental gradient variables, and the site ids. Before we can run
+permute, we need to import the environmental gradients data.
+
+```{r }
+eg <-
+  permute(taxa = list(CD_06_Mall_wID, CN_06_Mall_wID),
+          envs = list(C_IC_D_06_wID, C_IC_N_06_wID),
+          sid  = "StationID")
+str(eg, max.level = 2)
+```
+
+The return of `permute` is list of lists. The first level denotes the treatment,
+in this example Treatment1 is "dry" and Treatment2 is "normal" -- the order of
+the input data sets.  The second level contains the data.frames with
+environmental and taxonomic data.
+
+
 
 
 
@@ -394,113 +472,7 @@ head(
 
 # Selecting macroinvertebrate density data for TITAN
 
-A new function in pTITAN2 is the occurrences function. This is an extension for
-deciding the taxonomic detail to be included in a TITAN run based on `minSplt` in TITAN.
-`minSplt` is minimum number of occurrences that TITAN is looking for
-taxa to have across the provided sites. The `minSplt` default in TITAN is 5 and should never drop below 3.
 
-There are two approaches for deciding the level of taxonomic detail to include in a
-TITAN run. First, the analyst could decide to look at everything at a certain taxonomic level,
-for example genus. In this approach every genus that did not have the minimum number of
-occurrences would not be included. The second approach would be using the lowest taxonomic
-detail on a case-by-case bias. This means retaining the lowest detail that meets the minimum number of
-occurrences. In this approach if a genus had, for example, 5 occurrences it would be used. However, if
-a family with three genuses each only had two occurrences, the family level would be used instead.
-This is the approach that is used in the occurrences function where the `n` is the
-minimum number of occurrences that are required for the TITAN runs.
-
-To have a sufficient number of observations for each code in the
-`TITAN::titan()` runs we will only use those with at least `n` observations.
-The code to use should be as granular as possible.
-This means if a macroinvertebrate count has at least six occurrences in a genus
-code, the family, order, and class codes associated with these counts should be
-removed.  Or for another example, if there are too few counts at the genus level,
-but at least 6 counts at the family level- the family code would be retained and
-the order and class codes would be removed.
-
-The function `occurrences` provides a `data.frame` with the `taxon`, as
-provided and split into its component parts, and the counts.
-
-
-```{r }
-occurrences(CN_06_Mall_wID[, -1], n = 6L)
-```
-
-Note that for `Class == "Ar"` there is only one row, with no `Order`, `Family`,
-or `Genus` level information. That row is retained in the object returned from
-`occurrences`.
-
-The `Class == Bi` is more interesting. The `Order == "Un"` has no present
-counts and is thus not reported in the object returned from `occurrences`.
-The `BiVeCa01` should be reported, but not the `BiVeCa00`.  `BiVeSh00` should
-also be reported. The `BiVe0000` and `Bi000000` should not be returned from
-`occurrences` as preference for the codes with Family and Genus information
-has been used.
-
-For the resampling work to follow we will build the two taxonomic data sets
-by selecting the columns for the taxon returned by `occurrences`
-
-# Permuting of Treatment Labels
-
-The second new function in the pTITAN2 is the permute function. This is the function
-that is used to permute the data across treatment labels such
-that each station has a non-zero probability of being assigned to each
-treatment, and that the stations are unique within each treatment and
-replication.
-
-For example, say we have stations A, B, C, D and E with treatments 1 and 2.
-Let the Trt0 denote the initial treatment labels for the stations and Trt1,
-Trt2, ... denote the permuted labels.
-
-Station Trt0 Trt1 Trt2 Trt3 Trt4
-------- ---- ---- ---- ---- ----
-A       1    1    2    1    1
-A       2    2    1    2    2
-B       1    1    1    2    2
-C       1    1    2    2    1
-C       2    2    1    1    2
-D       2    2    2    1    2
-E       2    2    2    2    1
-
-Notice that for station A and C in each of the permuted sets, one row is
-assigned to treatment 1 and one to treatment 2, i.e., a station is not
-replicated within a treatment level within a permutation.  For Stations B,
-D, and E, the initial observations were for treatments 1, 2, and 2
-respectively. The balance of 1, 2, 2 is maintained over the permutations.
-
-The function `permute` is provided to generate a list of permuted sets of
-taxa and environmental gradients.
-
-Before we can run `permute`, we need to import the environmental gradients
-data.
-
-```{r }
-eg <- permute(
-              taxa = list(CD_06_Mall_wID, CN_06_Mall_wID)
-              ,
-              envs = list(C_IC_D_06_wID, C_IC_N_06_wID)
-              ,
-              sid = "StationID"
-              )
-```
-
-The result of the `permute` call is a list of lists.
-
-```{r }
-str(eg, max.level = 1L)
-eg
-```
-
-The first level denotes the treatment  In this example `Treatment1` is
-the "dry" condition and the `Treatment2` is the "normal" condition, the order
-of the inputs.
-
-The second level are the data.frames for the treatment, the environmental
-gradient and the taxonomic data.
-
-```{r }
-str(eg, max.level = 2L)
-```
 
 
 # Running `TITAN2::titan`
@@ -527,7 +499,7 @@ be much higher. This process is very computationally intensive and can take hour
 depending on the available computing power and the number of bootstraps and permutations used.
 
 
-# Permuting Three or more Treatments
+## Permuting Three or more Treatments
 
 If you have three or more treatments and need to permute over them with the
 condition that no station will be in the same treatment more than once on any
@@ -622,6 +594,56 @@ dplyr::tibble(treatment = "T1T2_CDCN",
                     )) + 1) / 1001)
 ```
 
+# Conclusions
+
+TITAN is used in ecological studies to determine individual taxa and community
+level change points across an environmental gradient for both taxa that increase
+with the increasing environmental gradient and taxa that decrease with the
+increasing environmental gradient [@baker2010new]. pTITAN2 was developed
+as an extension of TITAN to enable comparing TITAN results between different
+treatments, including those with variable sample sizes, by permutating the
+observed data between the treatments and then rerunning TITAN on the permuted
+dataset. This allows for statistically determining difference between the
+treatments without using overlapping confidence intervals, which can be
+problematic and can lead to accepting the null hypothesis more frequently than
+statistically necessary.
+
+# Data
+Data associated with figures in this manuscript will be available via a query
+available at the url: https://edg. epa.gov/metadata/catalog/main/home.page
+within a few months of publication.
+
+# Software availability
+The pTITAN2 R package is availabile from the Comprehensive R Archive Network
+(CRAN) at https://cran.r-project.org/package=pTITAN2.
+Source code and example datasets are available at https://github.com/sfigary/pTITAN2.
+This is an open-access article, free of all copyright, and may be
+freely reproduced, distributed, transmitted, modified, built upon, or otherwise
+used by anyone for any lawful purpose. The work is made available under the
+Creative Commons CC0 public domain dedication.
+
+# Author Contributions
+* Stephanie Figary: Data Curation, Methodology, Software, Formal Analysis, Writing
+* Naomi Detenbeck: Conceptualization, Funding Acquisition, Writing, Supervision
+* Peter DeWitt: Software development, Writing
+
+# Competing Interests
+No competing interests were disclosed
+
+# Grant Information
+This work was partially supported by the U.S. Environmental Protection Agency
+via an interagency agreement with the Department of Energy (DW92429801-9) which
+provided funding to Stephanie Figary through the ORISE program and through
+funding on the EPA contract EP-C-13-022 with Neptune, supporting software
+development.
+
+# Acknowledgments
+This is contribution number ORD-041368 of the Atlantic Coastal Environmental
+Sciences Division, Center for Environmental Measurement and Modeling, Office of
+Research and Development, U.S. Environmental Protection Agency. Mention of trade
+names or commercial products does not constitute endorsement or recommendation
+for use.
+
 # References
 <div id="refs"></div>
 
@@ -630,5 +652,4 @@ dplyr::tibble(treatment = "T1T2_CDCN",
 ```{r echo = TRUE, results = "markup"}
 print(sessionInfo(), local = FALSE)
 ```
-
 
