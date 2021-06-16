@@ -19,6 +19,7 @@ Imports:
   data.table,
   stringr
 Suggests:
+  bookdown,
   DiagrammeR,
   dplyr (>= 1.0.0),
   knitr,
