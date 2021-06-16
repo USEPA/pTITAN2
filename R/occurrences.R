@@ -105,6 +105,6 @@ occurrences.data.frame <- function(data, n = 6L) {
   data.table::set(rtn, j = "CO", value = NULL)
   data.table::set(rtn, j = "COF", value = NULL)
   data.table::setkeyv(rtn, "taxon")
-  rtn
+  as.data.frame(rtn)
 }
 

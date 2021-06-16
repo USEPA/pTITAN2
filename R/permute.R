@@ -87,7 +87,7 @@ permute <- function(taxa, envs, sid) {
                    for (j in c(sid, grep("^\\.\\.", names(x), value = TRUE))){
                      data.table::set(x, j = j, value = NULL)
                    }
-                   x
+                   as.data.frame(x)
                  })
 
   outT <- lapply(PERMS, function(p) { subset(TAXA, TAXA[["..rowid.."]] %in% p) })
@@ -97,7 +97,7 @@ permute <- function(taxa, envs, sid) {
                    for (j in c(sid, grep("^\\.\\.", names(x), value = TRUE))){
                      data.table::set(x, j = j, value = NULL)
                    }
-                   x
+                   as.data.frame(x)
                  })
 
   rtn <-
