@@ -19,7 +19,8 @@ Imports:
   data.table,
   stringr
 Suggests:
-  dplyr,
+  DiagrammeR,
+  dplyr (>= 1.0.0),
   knitr,
   magrittr,
   readr,

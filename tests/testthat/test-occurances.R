@@ -7,7 +7,7 @@ test_that("Top three rows of the occurrence example are as expected",
                                 Genus = c("00", "01", "00"),
                                 count = c(115L, 16L, 42L)),
                            row.names = c(NA, -3L),
-                           class = c("data.table", "data.frame"))
+                           class = c("data.frame"))
 
             expect_identical(occurrences(CN_06_Mall_wID[, -1], n = 6)[1:3, ], x)
           })
