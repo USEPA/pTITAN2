@@ -1,13 +1,13 @@
 #' Example Data Sets
 #'
-#' Four Example data sets for use the the pTITAN2 pacakge.
+#' Four Example data sets for use the pTITAN2 pacakge.
 #'
 #' Example data sets are from publicly available macroinvertebrate survey data
 #' from California.  The data sets are broken down between the environmental
 #' variable, in this case percent impervious cover, and macroinvertebrate data.
 #' Separate data files are provided for each 'treatment' that is explored. In
 #' this case, the treatments are data from either drought (dry) or normal
-#' precipitation years in the Chaparral region of California. 
+#' precipitation years in the Chaparral region of California.
 #'
 #' \code{CN_06_Mall_wID} (Chaparral Region, Treatment = Normal) file contains
 #' raw macroinvertebrate density data for 500 possible macroinvertebrate codes
@@ -49,6 +49,6 @@ NULL
 #' \code{system.file("example-scripts", "permutation_example.R", package = "pTITAN2")}
 #'
 #' @seealso \code{vignette("pTITIAN2")}
-#' 
+#'
 #' @rdname permutation_example
 "permutation_example"
