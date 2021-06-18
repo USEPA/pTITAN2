@@ -5,3 +5,5 @@
 .DS_Store
 *.Rout
 *.tar.gz
+coverage-report.html
+lib/

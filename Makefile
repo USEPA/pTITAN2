@@ -16,7 +16,7 @@ TESTS     = $(wildcard $(PKG_ROOT)/tests/testthat/*.R)
 ################################################################################
 # Recipes
 
-.PHONY: all check install clean covr
+.PHONY: all check install clean coverage-report.html
 
 all: $(PKG_NAME)_$(PKG_VERSION).tar.gz
 
@@ -56,6 +56,15 @@ install: $(PKG_NAME)_$(PKG_VERSION).tar.gz
 
 uninstall :
 	R --vanilla --quiet -e "try(remove.packages('pedalfast.data'), silent = TRUE)"
+
+coverage-report.html : $(R) $(TESTS) $(VIGNETTES)
+	Rscript --vanilla --quiet -e "options(repo = c('$(CRAN)'))" \
+		-e "if (!require(git2r)) {install.packages('git2r', repo = c('$(CRAN)'))}" \
+		-e "if (!require(covr)) {install.packages('covr', repo = c('$(CRAN)'))}" \
+		-e "git2r::status()"\
+		-e "git2r::repository('.')"\
+		-e "coverage <- covr::package_coverage(type = 'tests')"\
+		-e "covr::report(coverage, file = 'coverage-report.html')"
 
 clean:
 	$(RM) -f  $(PKG_NAME)_$(PKG_VERSION).tar.gz
