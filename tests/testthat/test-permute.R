@@ -33,7 +33,6 @@ test_that("permute2 failes to give a valid permutation after 100 trys",
 
 test_that("permute2 works",
           {
-            set.seed(42)
             dry_taxa    <- subset(CD_06_Mall_wID, select = c("StationID", grep("^(Ar|BiVe)", names(CD_06_Mall_wID), value = TRUE)))
             normal_taxa <- subset(CN_06_Mall_wID, select = c("StationID", grep("^(Ar|BiVe)", names(CN_06_Mall_wID), value = TRUE)))
 
@@ -47,5 +46,5 @@ test_that("permute2 works",
                        minTaxonFreq = 3L,
                        trys = 100L)
 
-            expect_equal( attr(eg_permute, "minTaxonFreq"), c(33, 17))
+            expect_true( all(attr(eg_permute, "minTaxonFreq") >= 3L) )
           })
