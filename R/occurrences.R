@@ -49,7 +49,7 @@ occurrences.data.frame <- function(data, n = 6L) {
                  call. = FALSE)
   }
 
-  if (!all(stringr::str_length(names(data)) == 8L)) {
+  if (!all(nchar(names(data)) == 8L)) {
     stop(sprintf("Expected all column names in `%s` to be eight characters long.  Two characters each to represent the class, order, family, and genus.",
                  deparse(substitute(data))),
                  call. = FALSE)

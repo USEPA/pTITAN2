@@ -401,10 +401,10 @@ once using tidyverse syntax and once using data.table syntax.
 CN_06_Mall_wID %>%
   dplyr::select(-StationID) %>%
   tidyr::pivot_longer(cols = dplyr::everything(), names_to = 'taxon', values_to = 'count') %>%
-  dplyr::mutate(Class = stringr::str_sub(.data$taxon, 1, 2),
-                Order = stringr::str_sub(.data$taxon, 3, 4),
-                Family = stringr::str_sub(.data$taxon, 5, 6),
-                Genus  = stringr::str_sub(.data$taxon, 7, 8)) %>%
+  dplyr::mutate(Class = substr(.data$taxon, 1, 2),
+                Order = substr(.data$taxon, 3, 4),
+                Family = substr(.data$taxon, 5, 6),
+                Genus  = substr(.data$taxon, 7, 8)) %>%
   dplyr::group_by(.data$Class, .data$Order, .data$Family, .data$Genus) %>%
   dplyr::summarize(taxon = unique(.data$taxon), count = sum(.data$count > 0)) %>%
   dplyr::ungroup() %>%
