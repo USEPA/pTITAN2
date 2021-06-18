@@ -1,7 +1,7 @@
 #' Permute
 #'
 #' Permute treatment labels for a taxa and associated environmental gradients.
-#' 
+#'
 #' The taxa and envs lists are expected to be of equal length and that the ith
 #' element of taxa list is associated with the ith element of the envs list.
 #' That is, the taxa and environmental gradient for treatment 1 are both the
@@ -20,7 +20,7 @@
 #' Details
 #' @param sid a character vector of length one with the name of the column
 #' identifying the station id.
-#' 
+#'
 #' @return
 #' A list of lists of lists.  At the top level the elements are the treatment
 #' groups.  There are as many elements as the length of the lists taxa and envs.
@@ -32,30 +32,27 @@
 #' # Read the vignette
 #' vignette(topic = "pTITAN2", package = "pTITAN2")
 #' }
-#' 
+#'
 #' @export
 permute <- function(taxa, envs, sid) {
 
-  # Testing for equal length of the tax and envs lists.
-  if (length(taxa) != length(envs)) {
-    stop(sprintf("taxa has length %i; evns has length %i.  Expected equal lengths.",
-                 length(taxa), length(envs)), 
-         call. = FALSE)
-  }
+  stopifnot((class(taxa) == "list") & (class(envs) == "list"))
+  stopifnot(all(sapply(taxa, inherits, what = "data.frame")) & all(sapply(envs, inherits, what = "data.frame")) )
+  stopifnot((length(taxa) == length(envs)) & (length(taxa) > 1))
 
   # build a single data.frame with the station ID and treatment labels. Check
   # that the same station and treatment combinations are present in both the
   # taxa and environmental gradients.
   TAXA <- data.table::rbindlist(taxa, idcol = "..treatment..", use.names = TRUE, fill = TRUE)
   ENVG <- data.table::rbindlist(envs, idcol = "..treatment..", use.names = TRUE, fill = TRUE)
-  
+
   # replace all NA values with a 0
   for(j in names(TAXA)[!(names(TAXA) %in% c("..treatment..", sid))]) {
     data.table::set(TAXA, j = j, value = data.table::nafill(TAXA[[j]], type = "const", fill = 0))
   }
   data.table::set(TAXA, j = "..rowid..", value = paste(TAXA[[sid]], TAXA[["..treatment.."]], sep = "_"))
   data.table::set(ENVG, j = "..rowid..", value = paste(ENVG[[sid]], ENVG[["..treatment.."]], sep = "_"))
-  
+
   # Generate a unique identifier for each station/treatment combination.  Only
   # need to work with the TAXA data.frame for this. The ENVG was generated only
   # for the check above.  Also add a count of the number of occurrences of the
@@ -108,7 +105,7 @@ permute <- function(taxa, envs, sid) {
 
   names(rtn) <- paste0("Treatment", 1:length(taxa))
   attr(rtn, "minTaxonFreq") <- as.numeric(sapply(outT, function(x) { min(colSums(data.matrix(x) > 0)) }))
-  
+
   rtn
 }
 
@@ -124,7 +121,7 @@ permute2 <- function(..., minTaxonFreq = 3L, trys = 100L) {
   repeat {
     eg <- permute(...)
 
-    if (all(attr(eg, "minTaxonFreq") > minTaxonFreq)) { 
+    if (all(attr(eg, "minTaxonFreq") > minTaxonFreq)) {
       message(sprintf("It took %d attempts to get a valid permutation.", counter))
       break
     } else {
@@ -136,7 +133,7 @@ permute2 <- function(..., minTaxonFreq = 3L, trys = 100L) {
         message(sprintf("I give up.  %d tries and still no valid permutation.", trys))
         break
       }
-    } 
+    }
   }
 
   if (counter >= trys) {
