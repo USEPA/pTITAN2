@@ -1,3 +1,13 @@
+test_that("Non-unique column names result in an error",
+          {
+            x <- CN_06_Mall_wID[, c(1, 2, 2, 3)]
+            names(x) <- c("StationID", "tax1", "tax1", "tax2")
+            expect_error(occurrences(x))
+          })
+test_that("when !all(nchar(names(CN_06_Mall_wID))) gives error",
+          {
+            expect_error(occurrences(CN_06_Mall_wID))
+          })
 test_that("Top three rows of the occurrence example are as expected",
           {
             x <- structure(list(taxon = c("Ar000000", "BiVeCa01", "BiVeSh00"),
@@ -11,3 +21,4 @@ test_that("Top three rows of the occurrence example are as expected",
 
             expect_identical(occurrences(CN_06_Mall_wID[, -1], n = 6)[1:3, ], x)
           })
+
