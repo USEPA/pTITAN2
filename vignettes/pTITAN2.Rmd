@@ -2,7 +2,10 @@
 title: "pTITAN2"
 subtitle: "Permutation of Treatment Labels and Threshold Indicator Taxa ANalysis"
 author: "Stephanie Figary^1^, Peter E. DeWitt^2,3,4^, and Naomi Detenbeck^5^"
-output: bookdown::html_document2
+output:
+  bookdown::html_document2: default
+  bookdown::word_document2:
+    reference_docx: "template.docx"
 bibliography: references.bib
 vignette: >
  %\VignetteEngine{knitr::rmarkdown}
@@ -10,11 +13,15 @@ vignette: >
  %\VignetteEncoding{UTF-8}
 ---
 
-^1^(former) ORISE participant at U.S. Environmental Protection Agency, Atlantic Coastal Environmental Sciences Division, 27 Tarzwell Drive, Narragansett, RI, 02882, USA </br>
-^2^Section of Informatics and Data Science, Department of Pediatrics, University of Colorado School of Medicine, Aurora Colorado, USA </br>
-^3^National Renewable Energy Laboratory, Golden Colorado, USA </br>
-^4^(formerly) Neptune and Company, Inc. Lakewood Colorado, USA </br>
-^5^U.S. Environmental Protection Agency, Atlantic Coastal Environmental Sciences Division, 27 Tarzwell Drive, Narragansett, RI 02882, USA </br>
+^1^(formerly) ORISE participant at U.S. Environmental Protection Agency, Atlantic Coastal Environmental Sciences Division, 27 Tarzwell Drive, Narragansett, RI, 02882, USA
+
+^2^Section of Informatics and Data Science, Department of Pediatrics, University of Colorado School of Medicine, Aurora Colorado, USA
+
+^3^National Renewable Energy Laboratory, Golden Colorado, USA
+
+^4^(formerly) Neptune and Company, Inc. Lakewood Colorado, USA
+
+^5^U.S. Environmental Protection Agency, Atlantic Coastal Environmental Sciences Division, 27 Tarzwell Drive, Narragansett, RI 02882, USA
 
 
 ```{r label=setup, include = FALSE}
@@ -135,10 +142,18 @@ at time of writing) along with old release and
 development versions via github actions.  Users should be familiar with the
 TITAN2 package operations before using pTITAN2 (see @R-TITAN2).
 
-The basic flow of operations for apply pTITAN2 involves 8 steps
-(Figure \@ref(fig:workflow))
+The basic workflow for pTITAN2 is
 
-```{r label = "workflow", fig.cap = "The series of steps needed to impliment pTITAN2", echo = FALSE}
+1. Prepare and import the environmental gradient dataset into R
+2. Prepare and import the taxonomic dataset into R
+3. Preprocess raw taxonomic data to determine appropriate taxonomic level of resloution (occurrence function)
+4. Select columns for the taxon level retuned by occurrence function
+5. Permut the data across treatment labels to generate list of lists
+6. Set up cluster for parallele processing (optional)
+7. Run TITAN2 series on original and permuted data sets
+8. Analyze probability of exceeding observed diffrence in changepoint between treatments based on distribution of paired changepoint differences
+
+```{r label = "workflow", eval = FALSE, fig.cap = "The series of steps needed to impliment pTITAN2", echo = FALSE, results = "asis"}
 DiagrammeR::grViz(diagram = "digraph flowchart {
                    node [fontname = arial, shape = oval]
                    tab1 [label = '@@1']
@@ -166,9 +181,9 @@ DiagrammeR::grViz(diagram = "digraph flowchart {
 ## Implementation:
 
 The first step of pTITAN2 is to provide the data about the environmental
-gradient in exactly the format as for TITAN (Figure \@ref(fig:workflow), step
+gradient in exactly the format as for TITAN, step
 1).  This can be either a single file or include in teh taxonomic data file
-[@R-TITAN].  Like TITAN2, taxonomic information should be provided as counts or
+[@R-TITAN2].  Like TITAN2, taxonomic information should be provided as counts or
 density.  Unlike TITAN2, pTITAN2 taxonomic data nees to be provide as a code
 that is 8 characters in length and captures four levels of hierarchical
 taxonomic classification information.
@@ -196,7 +211,7 @@ You can gain access to the csv files via `system.file`
 ```{r label="list-example-data-sets"}
 list.files(system.file("extdata", package = "pTITAN2"))
 ```
-or get the data sets loaded into you environment via
+or get the data sets loaded into your environment via
 ```{r}
 data(C_IC_D_06_wID, C_IC_N_06_wID, CD_06_Mall_wID, CN_06_Mall_wID,
      package = "pTITAN2")
@@ -258,7 +273,7 @@ with high sample sizes, and enable comparisons between treatments with different
 sample sizes.
 
 For example, assume we have sites A, B, C, D, and E with treatments 1 and 2
-(\@ref(tab:example_treatment_permutation)).
+(Table \@ref(tab:exampleTreatmentPermutation)).
 Let Trt0 denote the initial treatment labels for the sites and Trt1, ...,
 Trt4 denote permuted treatment labels.  For sites A and C, each permuted set of
 treatment labels consist of one row for label 1 and one row for label 2.  For
@@ -287,20 +302,19 @@ eg_permuation[site_n == 1, trt4 := sample(trt0)]
 eg_permuation[, site_n := NULL]
 ```
 
-```{r label = "example_treatment_permutation", echo = FALSE, results = "asis"}
+```{r label = "exampleTreatmentPermutation", echo = FALSE, results = "asis"}
 knitr::kable(eg_permuation,
-             caption = "Example distribution of sites and perutated treatment
-             labels.",
+             caption = "Example distribution of sites and perutated treatment labels.",
              align = "c")
 ```
 
 After permutations, clusters can be used for parallel processing of
-`TITAN::titan()` calls (\@ref(fig:workflow), step 6).  This can be advantageous
+`TITAN::titan()` calls.  This can be advantageous
 as `TITAN::titan()` calls can be time and computationally expensive.  Following
 the needed `TITAN::titan()` calls the differences between treatment change
 points in the observed data can be compared to the differences between treatment
 change points in the permuted stat to determine if the observed treatment
-differences are statistically significant (\@ref(fig:workflow), step 8).
+differences are statistically significant.
 
 
 # Example

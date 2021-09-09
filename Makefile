@@ -1,6 +1,5 @@
 PKG_ROOT    = .
-PKG_VERSION = $(shell gawk '/^Version:/{print $$2}' $(PKG_ROOT)/DESCRIPTION)
-PKG_NAME    = $(shell gawk '/^Package:/{print $$2}' $(PKG_ROOT)/DESCRIPTION)
+PKG_VERSION = $(shell gawk '/^Version:/{print $$2}' $(PKG_ROOT)/DESCRIPTION) PKG_NAME    = $(shell gawk '/^Package:/{print $$2}' $(PKG_ROOT)/DESCRIPTION)
 
 CRAN = "https://cran.rstudio.com"
 
@@ -55,7 +54,7 @@ install: $(PKG_NAME)_$(PKG_VERSION).tar.gz
 	R CMD INSTALL $(PKG_NAME)_$(PKG_VERSION).tar.gz
 
 uninstall :
-	R --vanilla --quiet -e "try(remove.packages('pedalfast.data'), silent = TRUE)"
+	R --vanilla --quiet -e "try(remove.packages('pTITAN2'), silent = TRUE)"
 
 coverage-report.html : $(R) $(TESTS) $(VIGNETTES)
 	Rscript --vanilla --quiet -e "options(repo = c('$(CRAN)'))" \
@@ -65,6 +64,10 @@ coverage-report.html : $(R) $(TESTS) $(VIGNETTES)
 		-e "git2r::repository('.')"\
 		-e "coverage <- covr::package_coverage(type = 'tests')"\
 		-e "covr::report(coverage, file = 'coverage-report.html')"
+
+manuscript.docx : vignettes/pTITAN2.Rmd vignettes/template.docx
+	R --vanilla --quiet -e 'rmarkdown::render("$<", output_format = "bookdown::word_document2")'
+	mv vignettes/pTITAN2.docx $@
 
 clean:
 	$(RM) -f  $(PKG_NAME)_$(PKG_VERSION).tar.gz
