@@ -4,7 +4,7 @@
 \alias{occurrences}
 \title{Occurrence}
 \usage{
-occurrences(data, n = 6L)
+occurrences(data, n = 5L)
 }
 \arguments{
 \item{data}{A \code{data.frame} wit}
@@ -37,9 +37,10 @@ relaxes that requirement by using the \code{\link[dplyr]{arrange}} call.
 }
 \examples{
 
+# Report the tax with minimum of five (default) occurrences.
+occurrences(CN_06_Mall_wID[, -1])
 
 # Report the tax with at least six occurrences
-
 occurrences(CN_06_Mall_wID[, -1], n = 6)
 
 }

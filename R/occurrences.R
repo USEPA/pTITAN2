@@ -29,19 +29,20 @@
 #'
 #' @examples
 #'
+#' # Report the tax with minimum of five (default) occurrences.
+#' occurrences(CN_06_Mall_wID[, -1])
 #'
 #' # Report the tax with at least six occurrences
-#'
 #' occurrences(CN_06_Mall_wID[, -1], n = 6)
 #'
 #' @export
-occurrences <-function(data, n = 6L) {
+occurrences <-function(data, n = 5L) {
   UseMethod("occurrences")
 }
 
 #' @method occurrences data.frame
 #' @export
-occurrences.data.frame <- function(data, n = 6L) {
+occurrences.data.frame <- function(data, n = 5L) {
 
   if (any(duplicated(names(data)))) {
     stop(sprintf("All the column names in `%s` need to be unique.",
