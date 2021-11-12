@@ -110,7 +110,7 @@ permute <- function(taxa, envs, sid) {
 }
 
 #'
-#' @param minTaxonFreq minnumber of occurrences for each taxon
+#' @param minTaxonFreq min number of occurrences for each taxon
 #' @param trys maximum number of attempts to generate a meaningful permutation
 #' @param ... passed to permute
 #' @rdname permute

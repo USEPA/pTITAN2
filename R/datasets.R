@@ -1,6 +1,6 @@
 #' Example Data Sets
 #'
-#' Four Example data sets for use the pTITAN2 pacakge.
+#' Four Example data sets for use the pTITAN2 package.
 #'
 #' Example data sets are from publicly available macroinvertebrate survey data
 #' from California.  The data sets are broken down between the environmental

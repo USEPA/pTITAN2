@@ -20,7 +20,7 @@ identifying the station id.}
 
 \item{...}{passed to permute}
 
-\item{minTaxonFreq}{minnumber of occurrences for each taxon}
+\item{minTaxonFreq}{min number of occurrences for each taxon}
 
 \item{trys}{maximum number of attempts to generate a meaningful permutation}
 }

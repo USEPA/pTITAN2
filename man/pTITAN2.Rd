@@ -3,8 +3,8 @@
 \docType{package}
 \name{pTITAN2}
 \alias{pTITAN2}
-\title{Permutations of Treatment Lables and TITAN2 Analysis}
+\title{Permutations of Treatment Labels and TITAN2 Analysis}
 \description{
-Permutate treatment labels for taxa and environmental gradients to generate
+Permute treatment labels for taxa and environmental gradients to generate
 an empirical distribution of change points.
 }

@@ -27,7 +27,7 @@ CD_06_Mall_wID
 CN_06_Mall_wID
 }
 \description{
-Four Example data sets for use the pTITAN2 pacakge.
+Four Example data sets for use the pTITAN2 package.
 }
 \details{
 Example data sets are from publicly available macroinvertebrate survey data

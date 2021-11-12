@@ -15,7 +15,7 @@ approach for assessing significant differences and rejects the null hypothesis
 less often than standard approaches (Schenker and Gentleman 2001, Greenland et al. 2016).
 "As with P values, comparison between groups requires statistics that directly test and
 estimate the differences across groups." (Greenland et al. 2016). __This package,
-pTITAN2, enables comparing TITAN2 output between treatments by permutating
+pTITAN2, enables comparing TITAN2 output between treatments by permuting
 the observed data between treatments and rerunning TITAN on the permuted
 data.__ There are some limitations on the permutations, including (1) a site
 cannot occur in a category more than once, the same limitation as in the original

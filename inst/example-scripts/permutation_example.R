@@ -7,7 +7,7 @@ load("./data/CN_06_Mall_wID.rda")
 source("./R/permute.R")
 source("./R/occurrences.R")
 
-# Create an expression to replicate, that is, create several permuations.  Below
+# Create an expression to replicate, that is, create several permutations.  Below
 # will be an example call for serial replication and an example for parallel
 # replication
 expr <- expression(
@@ -56,10 +56,10 @@ expr <- expression(
 
 # Create the 10 Permutations
 
-# Serial Computions
+# Serial Computations
 # permutation_example <- replicate(10, eval(expr), simplify = FALSE)
 
-# Parallel Computions (this is for a Unix-like OS)
+# Parallel Computations (this is for a Unix-like OS)
 permutation_example <- parallel::mclapply(1:10, eval, expr = expr, mc.cores = 4L)
 
 permutation_example <- do.call(rbind, permutation_example)
