@@ -229,7 +229,7 @@ function selects the codes that should be used for the `TITAN2::titan` run.
 The goal is to select the macroinvertebrate code with the most taxonomic
 detail having at least `n` occurrences. Only one macroinvertebrate code will be
 associated with the macroinvertebrate counts. For example, if there are at
-least six occurrences at the genus level, the family, order, and class codes
+least `r as.list(args(pTITAN2::occurrences))$n` occurrences at the genus level, the family, order, and class codes
 would not be used in the `TITAN2::titan` run.
 
 The names within the data set are expected to have the following structure:
@@ -251,11 +251,11 @@ taxon, the class, order, family, and genus split out into individual columns,
 and the count of occurrences within the provided taxonomic data set.
 `TITAN2::titan` recommends all taxonomic groups have at least five observations
 [@baker2010new]. Thus `occurances` returns only taxons with at least `n`
-observations, defaulting to six.  The taxonomic code chosen for analysis should
+observations, defaulting to `r as.list(args(pTITAN2::occurrences))$n`.  The taxonomic code chosen for analysis should
 be at the finest possible resolution.  For example, if a macroinvertebrate
-count has at least six occurrences in a genus code, the family, order, and class
+count has at least `r as.list(args(pTITAN2::occurrences))$n` occurrences in a genus code, the family, order, and class
 codes associated with these counts should be removed. Further, if there are too
-few counts at the genus level, but at least six counts at the family level- the
+few counts at the genus level, but at least `r as.list(args(pTITAN2::occurrences))$n` counts at the family level- the
 family code would be retained and the order and class codes would be removed.
 
 The second new function provided by pTITAN2 is the `permute` function which
@@ -356,7 +356,7 @@ Severity Index  was determined for each sampling event using monthly PDSI
 data from the National Oceanic and Atmospheric Administration (NOAA, last
 accessed 21 December 2016) and climate divisions from the National Climatic Data
 Center (USGS 2004, last accessed 21 December 2016). All sampling events were
-classified as dry (<-2 PDSI), normal (between -2 and 2 PDSI), or wet (>2 PDSI)
+classified as dry (less than -2 PDSI), normal (between -2 and 2 PDSI), or wet ( greater than 2 PDSI)
 and these classifications were used as treatments for the permutations. The
 environmental gradient of interest was percent impervious cover in the upstream
 watershed, in this case defined by the National Land Cover Datasets (NLCD,
@@ -393,7 +393,7 @@ function selects the codes that should be used for the `TITAN2::titan` run.
 The goal is to select the macroinvertebrate code with the most taxonomic
 detail having at least `n` occurrences. Only one macroinvertebrate code will be
 associated with the macroinvertebrate counts. For example, if there are at
-least six occurrences at the genus level, the family, order, and class codes
+least `r as.list(args(pTITAN2::occurrences))$n` occurrences at the genus level, the family, order, and class codes
 would not be used in the `TITAN2::titan` run.
 
 The data is parsed within the `occurrences` call and returns a data.frame with
@@ -407,9 +407,7 @@ should never drop below 3.  The default for `occurrences` is `minSplt` = `n` =
 6.
 
 ```{r label = "occurrences_example"}
-head(
-     occurrences(CN_06_Mall_wID[, -1], n = 6L)
-)
+head(occurrences(CN_06_Mall_wID[, -1]))
 ```
 
 Compare these results to working with the raw data.  We repeat the work twice,
