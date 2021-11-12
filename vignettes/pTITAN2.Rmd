@@ -424,7 +424,7 @@ CN_06_Mall_wID %>%
                 Genus  = substr(.data$taxon, 7L, 8L)
                 ) %>%
   dplyr::group_by(.data$Class, .data$Order, .data$Family, .data$Genus) %>%
-  dplyr::summarize(
+  dplyr::summarise(
                    taxon = unique(.data$taxon),
                    count = sum(.data$count > 0),
                    .groups = "keep"
@@ -619,7 +619,7 @@ statistically necessary.
 
 # Data
 Data associated with figures in this manuscript will be available via a query
-available at the url: https://edg. epa.gov/metadata/catalog/main/home.page
+available at the url: https://edg.epa.gov/metadata/catalog/main/home.page
 within a few months of publication.
 
 # Software availability
