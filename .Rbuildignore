@@ -4,6 +4,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.github$
-coverage-report.html
-lib/
-manuscript.docx
+^coverage-report\.html$
+^lib/
+^manuscript\.docx$
+^inst/WORDLIST$
