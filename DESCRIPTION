@@ -7,7 +7,8 @@ Authors@R: c(
     person(given = "Naomi",     family = "Detenbeck", email = "detenbeck.naomi@epa.gov",              role = c("aut"),        comment = c(ORCID = "0000-0002-9868-0475"))
  )
 Description: Permutate treatment labels for taxa and environmental gradients to
-    generate an empirical distribution of change points.
+    generate an empirical distribution of change points.  This is an extension
+    for the TITAN2 package <https://cran.r-project.org/package=TITAN2>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
