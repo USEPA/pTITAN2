@@ -9,3 +9,4 @@
 ^manuscript\.docx$
 ^inst/WORDLIST$
 ^cran-comments\.md$
+^CRAN-RELEASE$
