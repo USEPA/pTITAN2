@@ -8,3 +8,4 @@
 ^lib/
 ^manuscript\.docx$
 ^inst/WORDLIST$
+^cran-comments\.md$
