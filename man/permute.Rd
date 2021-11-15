@@ -10,9 +10,9 @@ permute(taxa, envs, sid)
 permute2(..., minTaxonFreq = 3L, trys = 100L)
 }
 \arguments{
-\item{taxa}{a list of data.frames with the taxa.  See Details.}
+\item{taxa}{a list of \code{data.frame}s with the taxa.  See Details.}
 
-\item{envs}{a list of data.frames with the environmental gradients. See
+\item{envs}{a list of \code{data.frame}s with the environmental gradients. See
 Details}
 
 \item{sid}{a character vector of length one with the name of the column
@@ -48,9 +48,14 @@ The taxa data.frames are expected to have the station ID column as well.
 taxa and environmental gradient data.frames.
 }
 \examples{
-\dontrun{
-# Read the vignette
-vignette(topic = "pTITAN2", package = "pTITAN2")
-}
 
+example_permutation <-
+ permute(taxa = list(CD_06_Mall_wID, CN_06_Mall_wID),
+         envs = list(C_IC_D_06_wID, C_IC_N_06_wID),
+         sid  = "StationID")
+str(example_permutation, max.level = 2)
+
+}
+\seealso{
+\code{vignette(topic = "pTITAN2", package = "pTITAN2")}
 }

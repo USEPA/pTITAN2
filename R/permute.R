@@ -15,8 +15,8 @@
 #' **Important** The station ID column name needs to be the same for all the
 #' taxa and environmental gradient data.frames.
 #'
-#' @param taxa a list of data.frames with the taxa.  See Details.
-#' @param envs a list of data.frames with the environmental gradients. See
+#' @param taxa a list of \code{data.frame}s with the taxa.  See Details.
+#' @param envs a list of \code{data.frame}s with the environmental gradients. See
 #' Details
 #' @param sid a character vector of length one with the name of the column
 #' identifying the station id.
@@ -27,11 +27,15 @@
 #'
 #' The second level are the taxa and environmental gradient.
 #'
+#' @seealso \code{vignette(topic = "pTITAN2", package = "pTITAN2")}
+#'
 #' @examples
-#' \dontrun{
-#' # Read the vignette
-#' vignette(topic = "pTITAN2", package = "pTITAN2")
-#' }
+#'
+#' example_permutation <-
+#'  permute(taxa = list(CD_06_Mall_wID, CN_06_Mall_wID),
+#'          envs = list(C_IC_D_06_wID, C_IC_N_06_wID),
+#'          sid  = "StationID")
+#' str(example_permutation, max.level = 2)
 #'
 #' @export
 permute <- function(taxa, envs, sid) {
@@ -110,10 +114,12 @@ permute <- function(taxa, envs, sid) {
 }
 
 #'
+#'
 #' @param minTaxonFreq min number of occurrences for each taxon
 #' @param trys maximum number of attempts to generate a meaningful permutation
 #' @param ... passed to permute
 #' @rdname permute
+#'
 #' @export
 permute2 <- function(..., minTaxonFreq = 3L, trys = 100L) {
   counter <- 1L

@@ -27,6 +27,9 @@
 #'
 #' @seealso \code{vignette(topic = "pTITAN2", package = "pTITAN2")}
 #'
+#' @return a \code{data.frame} with six columns: \code{taxon}, \code{Class},
+#' \code{Order}, \code{Family}, \code{Genus}, and \code{count}.
+#'
 #' @examples
 #'
 #' # Report the tax with minimum of five (default) occurrences.

@@ -11,6 +11,10 @@ occurrences(data, n = 5L)
 
 \item{n}{the minimum number of occurrences.}
 }
+\value{
+a \code{data.frame} with six columns: \code{taxon}, \code{Class},
+\code{Order}, \code{Family}, \code{Genus}, and \code{count}.
+}
 \description{
 Generate a taxonomic data set with codes which have at least n occurrences.
 }
