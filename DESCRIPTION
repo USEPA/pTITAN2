@@ -8,7 +8,7 @@ Authors@R: c(
  )
 Description: Permute treatment labels for taxa and environmental gradients to
     generate an empirical distribution of change points.  This is an extension
-    for the TITAN2 package <https://cran.r-project.org/package=TITAN2>.
+    for the 'TITAN2' package <https://cran.r-project.org/package=TITAN2>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Language: en-US
