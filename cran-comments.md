@@ -1,4 +1,8 @@
 # Version 1.0.0
+- Resubmission addressing feedback
+
+    - Corrected Spelling error in LICENSE file
+
 - Resubmission addressing feedback from inital submission
 
     - Please always write package names, software names and API (application programming interface) names in single quotes in title and description.  e.g: --> 'TITAN2'
