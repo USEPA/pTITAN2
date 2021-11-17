@@ -1,6 +1,8 @@
 # pTITAN2
 
 [![R-CMD-check](https://github.com/sfigary/pTITAN2/actions/workflows/check-full.yaml/badge.svg)](https://github.com/sfigary/pTITAN2/actions/workflows/check-full.yaml)
+[![CRAN status](https://www.r-pkg.org/badges/version/pTITAN2)](https://CRAN.R-project.org/package=pTITAN2)
+
 
 pTITAN2 is an extension to the
 [TITAN2](https://CRAN.R-project.org/package=TITAN2) package by Matthew E. Baker,
