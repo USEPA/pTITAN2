@@ -1,0 +1,10 @@
+citHeader("To cite pTITAN2 in publications, please use:")
+
+citEntry(entry = "article",
+  author = "Stephanie Figary, Peter E. DeWitt, Naomi Detenbeck",
+  title = "pTITAN2: Permutation of treatment labels and Threshold Indicator Taxa ANalysis",
+  journal = "F1000Research",
+  year = "2022",
+  doi = "https://doi.org/10.12688/f1000research.83714.1",
+  textVersion = "Figary S, DeWitt P and Detenbeck N. pTITAN2: Permutation of treatment labels and Threshold Indicator Taxa ANalysis. F1000Research 2022, 11:267 (https://doi.org/10.12688/f1000research.83714.1)"
+)
