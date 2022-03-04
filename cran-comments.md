@@ -1,3 +1,3 @@
-# Version 1.0.1
+# Version 1.0.2
 
-* Updating documentation after transfering ownership of the source code repository.
+* Updating documentation and adding a CITATION file
