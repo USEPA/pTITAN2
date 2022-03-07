@@ -350,17 +350,16 @@ representative of streams in the region.
 For this example, data were extracted for California's Chapparal Region
 [@ode2011ecological].  Sample observations were divided into one of three
 classes based on the precipitation regime for the sampling year using the Palmer
-Drought Severity Index (PDSI,
-https://www7.ncdc.noaa.gov/CDO/CDODivisionalSelect.jsp). The Palmer Drought
+Drought Severity Index (PDSI). The Palmer Drought
 Severity Index  was determined for each sampling event using monthly PDSI
 data from the National Oceanic and Atmospheric Administration (NOAA, last
 accessed 21 December 2016) and climate divisions from the National Climatic Data
 Center (USGS 2004, last accessed 21 December 2016). All sampling events were
-classified as dry (less than -2 PDSI), normal (between -2 and 2 PDSI), or wet ( greater than 2 PDSI)
+classified as dry (less than -2 PDSI), normal (between -2 and 2 PDSI), or wet (greater than 2 PDSI)
 and these classifications were used as treatments for the permutations. The
 environmental gradient of interest was percent impervious cover in the upstream
 watershed, in this case defined by the National Land Cover Datasets (NLCD,
-@homer2007completion, homer2015completion), with values interpolated between
+@homer2007completion, @homer2015completion), with values interpolated between
 NLCD years of record (2001,
 2006, 2011). Impervious area additions beyond 2011 were estimated as 50% of
 disturbed area for construction sites as documented in the California Storm Water
@@ -625,7 +624,6 @@ within a few months of publication.
 # Software availability
 The pTITAN2 R package is available from the Comprehensive R Archive Network
 (CRAN) at https://cran.r-project.org/package=pTITAN2.
-Source code and example datasets are available at https://github.com/sfigary/pTITAN2.
 This is an open-access article, free of all copyright, and may be
 freely reproduced, distributed, transmitted, modified, built upon, or otherwise
 used by anyone for any lawful purpose. The work is made available under the
