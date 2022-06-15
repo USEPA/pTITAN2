@@ -15,13 +15,12 @@ Language: en-US
 LazyData: true
 URL: https://github.com/USEPA/pTITAN2
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 Depends: R (>= 3.5.0)
 Imports:
   data.table
 Suggests:
   bookdown,
-  DiagrammeR,
   dplyr (>= 1.0.0),
   knitr,
   magrittr,

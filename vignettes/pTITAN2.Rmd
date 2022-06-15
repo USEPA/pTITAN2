@@ -153,31 +153,6 @@ The basic workflow for pTITAN2 is
 7. Run TITAN2 series on original and permuted data sets
 8. Analyze probability of exceeding observed difference in change-point between treatments based on distribution of paired change-point differences
 
-```{r label = "workflow", eval = FALSE, fig.cap = "The series of steps needed to impliment pTITAN2", echo = FALSE, results = "asis"}
-DiagrammeR::grViz(diagram = "digraph flowchart {
-                   node [fontname = arial, shape = oval]
-                   tab1 [label = '@@1']
-                   tab2 [label = '@@2']
-                   tab3 [label = '@@3']
-                   tab4 [label = '@@4']
-                   tab5 [label = '@@5']
-                   tab6 [label = '@@6']
-                   tab7 [label = '@@7']
-                   tab8 [label = '@@8']
-
-                   tab1 -> tab2 -> tab3 -> tab4 -> tab5 -> tab6 -> tab7 -> tab8;
-}
-  [1]: 'Prepare and import the environmental gradient dataset into R'
-  [2]: 'Prepare and import the taxonomic dataset into R'
-  [3]: 'Preprocess raw taxonomic data to determine appropriate taxonomic level\\nof resolution (occurrence function)'
-  [4]: 'Select columns for the taxon level retuned by occurrence function'
-  [5]: 'Permut the data across treatment labels to generate list of lists'
-  [6]: 'Set up cluster for parallele processing (optional)'
-  [7]: 'Run TITAN2 series on original and permuted data sets'
-  [8]: 'Analyze probability of exceeding observed diffrence in change-point\\nbetween treatments based on distribution of paired change-point differences'
-  ")
-```
-
 ## Implementation:
 
 The first step of pTITAN2 is to provide the data about the environmental
